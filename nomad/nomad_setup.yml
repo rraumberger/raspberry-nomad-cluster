@@ -1,0 +1,24 @@
+---
+
+- name: Install Nomad
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+    - nomad
+  vars:
+    install_state: install
+    version: "1.1.4"
+    shaHash: "27e24bb099433eac2ddcf8889464c6efc5e6c96a7f2d0147bade626d86c43a8b"
+
+- name: Install Consul
+  hosts: nomad_server
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+    - consul
+  vars:
+    install_state: latest
+

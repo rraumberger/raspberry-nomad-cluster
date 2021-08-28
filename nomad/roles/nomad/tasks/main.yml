@@ -1,0 +1,140 @@
+---
+
+- name: Shutdown Nomad
+  when: install_state == "absent"
+  ansible.builtin.systemd:
+    name: nomad
+    state: stopped
+    enabled: false
+
+- name: Remove Nomad service
+  when: install_state == "absent"
+  file:
+    path: "/etc/systemd/system/nomad.service"
+    state: absent
+
+- name: Create installer download location /opt/nomadInstall
+  when: install_state != "absent"
+  file:
+    path: "/opt/nomadInstall"
+    state: "directory"
+
+- name: Download Nomad
+  become: false
+  when: install_state != "absent"
+  connection: local
+  get_url:
+    url: "https://releases.hashicorp.com/nomad/{{version}}/nomad_{{version}}_linux_arm.zip"
+    dest: "/tmp/nomad_{{version}}_linux_arm.zip"
+    checksum: "sha256:{{shaHash}}"
+  run_once: true
+
+- name: Unarchive Nomad
+  when: install_state != "absent"
+  ansible.builtin.unarchive:
+    src: "/tmp/nomad_{{version}}_linux_arm.zip"
+    dest: /opt/nomadInstall
+
+- name: Remove local downloaded archive
+  when: install_state != "absent"
+  become: false
+  connection: local
+  file:
+    path: "/tmp/nomad_{{version}}_linux_arm.zip"
+    state: absent
+  run_once: true
+
+- name: Copy Nomad binary
+  when: install_state != "absent"
+  copy:
+    src: "/opt/nomadInstall/nomad"
+    dest: "/usr/bin/nomad"
+    group: root
+    owner: root
+    remote_src: yes
+    mode: 0700
+
+- name: Remove Nomad binary
+  when: install_state == "absent"
+  file:
+    path: "/usr/bin/nomad"
+    state: "absent"
+
+- name: Remove installer download location /opt/nomadInstall
+  when: install_state == "absent"
+  file:
+    path: "/opt/nomadInstall"
+    state: "absent"
+
+- name: Create data directory /opt/nomad
+  when: install_state != "absent"
+  file:
+    path: "/opt/nomad"
+    state: "directory"
+
+- name: Delete data directory /opt/nomad
+  when: install_state == "absent"
+  file:
+    path: "/opt/nomad"
+    state: "absent"
+
+- name: Install Nomad Service
+  when: install_state != "absent"
+  template:
+    src: systemd.txt
+    dest: /etc/systemd/system/nomad.service
+    group: root
+    owner: root
+    mode: 0644
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Delete /etc/nomad.d
+  when: install_state == "absent"
+  file:
+    path: "/etc/nomad.d"
+    state: "absent"
+
+- name: Create /etc/nomad.d
+  when: install_state != "absent"
+  file:
+    path: "/etc/nomad.d"
+    state: "directory"
+
+- name: Install nomad.hcl
+  when: install_state != "absent"
+  template:
+    src: nomad.hcl
+    dest: /etc/nomad.d/nomad.hcl
+    group: root
+    owner: root
+    mode: 0700
+
+- name: Install server.hcl
+  when: install_state != "absent" and 'nomad_server' in group_names
+  template:
+    src: server.hcl
+    dest: /etc/nomad.d/server.hcl
+    group: root
+    owner: root
+    mode: 0700
+
+
+- name: Install client.hcl
+  when: install_state != "absent" and 'nomad_client' in group_names
+  template:
+    src: client.hcl
+    dest: /etc/nomad.d/client.hcl
+    group: root
+    owner: root
+    mode: 0700
+
+
+- name: Start and Enable Nomad service
+  when: install_state != "absent"
+  ansible.builtin.systemd:
+    name: nomad
+    state: restarted
+    enabled: yes

@@ -1,0 +1,21 @@
+---
+
+- name: Uninstall Nomad
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+    - nomad
+  vars:
+    install_state: absent
+
+- name: Uninstall Consul
+  hosts: nomad_server
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+    - consul
+  vars:
+    install_state: absent
