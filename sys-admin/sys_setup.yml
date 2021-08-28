@@ -1,0 +1,37 @@
+---
+- name: Ensure system configuration
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+
+  roles:
+    - sys-setup
+
+- name: Remove packages
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - vars: 
+        packages: ['python2']
+      apt:
+        name: "{{ packages }}"
+        state: absent
+        autoclean: yes
+
+
+- name: Install essential packages 
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - vars: 
+        packages: ['vim', 'python3']
+      apt:
+        name: "{{ packages }}"
+        state: latest
+        update_cache: yes
+        autoclean: yes
