@@ -1,0 +1,8 @@
+[nomad_server]
+nomad-01
+
+[nomad_client]
+nomad-02
+nomad-03
+nomad-04
+nomad-05
