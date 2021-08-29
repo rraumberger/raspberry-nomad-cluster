@@ -1,2 +1,188 @@
 ---
 
+- name: Shutdown Consul
+  when: install_state == "absent"
+  ansible.builtin.systemd:
+    name: consul
+    state: stopped
+    enabled: false
+
+- name: Remove Consul service
+  when: install_state == "absent"
+  file:
+    path: "/etc/systemd/system/consul.service"
+    state: absent
+
+- name: Check installed version
+  when: install_state != "absent"
+  ansible.builtin.command: /usr/bin/consul version | grep '{{ version }}'
+  register: is_same_version_installed
+  failed_when: ( is_same_version_installed.rc not in [ 0, 1, 2 ] )
+
+- name: DEBUG Installed version
+  when: install_state != "absent"
+  ansible.builtin.debug:
+    msg: "{{ is_same_version_installed.stdout }}"
+
+- name: Set requires installation fact
+  set_fact:
+    requires_consul_installation: "{{ install_state != 'absent' and is_same_version_installed.rc != 0 }}"
+
+- name: Create installer download location /opt/consulInstall
+  when: requires_consul_installation
+  file:
+    path: "/opt/consulInstall"
+    state: "directory"
+
+- name: Download Consul
+  become: false
+  when: true in installation_required_list
+  vars:
+    installation_required_list: "{{ ansible_play_hosts|
+                                    map('extract', hostvars, 'requires_consul_installation')|
+                                    list }}"
+  connection: local
+  get_url:
+    url: "https://releases.hashicorp.com/consul/{{version}}/consul_{{version}}_linux_armhfv6.zip"
+    dest: "/tmp/consul_{{version}}_linux_armhfv6.zip"
+    checksum: "sha256:{{shaHash}}"
+  run_once: true
+
+- name: Unarchive Consul
+  when: requires_consul_installation
+  ansible.builtin.unarchive:
+    src: "/tmp/consul_{{version}}_linux_armhfv6.zip"
+    dest: /opt/consulInstall
+
+- name: Remove local downloaded archive
+  when: requires_consul_installation
+  become: false
+  connection: local
+  file:
+    path: "/tmp/consul_{{version}}_linux_armhfv6.zip"
+    state: absent
+  run_once: true
+
+- name: Add consul group
+  when: install_state != "absent"
+  ansible.builtin.group:
+    name: consul
+    system: true
+    state: present
+
+- name: Add consul user
+  when: install_state != "absent"
+  ansible.builtin.user:
+    name: consul
+    group: consul
+    system: true
+    state: present
+
+- name: Copy Consul binary
+  when: requires_consul_installation
+  copy:
+    src: "/opt/consulInstall/consul"
+    dest: "/usr/bin/consul"
+    group: consul
+    owner: consul
+    remote_src: yes
+    mode: 0700
+
+- name: Remove Consul binary
+  when: install_state == "absent"
+  file:
+    path: "/usr/bin/consul"
+    state: "absent"
+
+- name: Remove installer download location /opt/consulInstall
+  when: install_state == "absent"
+  file:
+    path: "/opt/consulInstall"
+    state: "absent"
+
+- name: Create data directory /opt/consul
+  when: install_state != "absent"
+  file:
+    path: "/opt/consul"
+    state: "directory"
+    owner: consul
+    group: consul
+
+- name: Delete data directory /opt/consul
+  when: install_state == "absent"
+  file:
+    path: "/opt/consul"
+    state: "absent"
+
+- name: Install Consul Service
+  when: install_state != "absent"
+  template:
+    src: systemd.txt
+    dest: /etc/systemd/system/consul.service
+    group: root
+    owner: root
+    mode: 0644
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Delete /etc/consul.d
+  when: install_state == "absent"
+  file:
+    path: "/etc/consul.d"
+    state: "absent"
+
+- name: Create /etc/consul.d
+  when: install_state != "absent"
+  file:
+    path: "/etc/consul.d"
+    state: "directory"
+
+- name: Install consul.hcl
+  when: install_state != "absent"
+  template:
+    src: consul.hcl
+    dest: /etc/consul.d/consul.hcl
+    group: consul
+    owner: consul
+    mode: 0700
+
+- name: Install server.hcl
+  when: install_state != "absent" and 'nomad_server' in group_names
+  template:
+    src: server.hcl
+    dest: /etc/consul.d/server.hcl
+    group: consul
+    owner: consul
+    mode: 0640
+
+- name: Install client.hcl
+  when: install_state != "absent" and 'nomad_client' in group_names
+  template:
+    src: client.hcl
+    dest: /etc/consul.d/client.hcl
+    group: consul
+    owner: consul
+    mode: 0640
+
+- name: Start and Enable Consul service
+  when: install_state != "absent"
+  ansible.builtin.systemd:
+    name: consul
+    state: restarted
+    enabled: yes
+
+- name: Remove consul user
+  when: install_state == "absent"
+  ansible.builtin.user:
+    name: consul
+    group: consul
+    state: absent
+
+- name: Remove consul group
+  when: install_state == "absent"
+  ansible.builtin.group:
+    name: consul
+    system: true
+    state: absent

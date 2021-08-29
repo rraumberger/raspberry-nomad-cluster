@@ -1,7 +1,7 @@
 ---
 
 - name: Uninstall Nomad
-  hosts: all
+  hosts: nomad_server,nomad_client
   remote_user: root
   become: yes
   become_method: sudo
@@ -11,7 +11,7 @@
     install_state: absent
 
 - name: Uninstall Consul
-  hosts: nomad_server
+  hosts: nomad_server,nomad_client
   remote_user: root
   become: yes
   become_method: sudo

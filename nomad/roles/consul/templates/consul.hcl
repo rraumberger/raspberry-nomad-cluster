@@ -1,0 +1,5 @@
+datacenter = "homenet"
+data_dir = "/opt/consul"
+advertise_addr = "{{ '{{ GetInterfaceIP \\"eth0\\" }}' }}"
+bind_addr = "{{ '{{ GetInterfaceIP \\"eth0\\" }}' }}"
+client_addr = "0.0.0.0"

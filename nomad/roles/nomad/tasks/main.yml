@@ -13,15 +13,34 @@
     path: "/etc/systemd/system/nomad.service"
     state: absent
 
-- name: Create installer download location /opt/nomadInstall
+- name: Check installed version
   when: install_state != "absent"
+  ansible.builtin.command: /usr/bin/nomad version | grep '{{ version }}'
+  register: is_same_version_installed
+  failed_when: ( is_same_version_installed.rc not in [ 0, 1, 2 ] )
+
+- name: DEBUG Installed version
+  when: install_state != "absent"
+  ansible.builtin.debug:
+    msg: "{{ is_same_version_installed.stdout }}"
+
+- name: Set requires installation fact
+  set_fact:
+    requires_nomad_installation: "{{ install_state != 'absent' and is_same_version_installed.rc != 0 }}"
+
+- name: Create installer download location /opt/nomadInstall
+  when: requires_nomad_installation
   file:
     path: "/opt/nomadInstall"
     state: "directory"
 
 - name: Download Nomad
   become: false
-  when: install_state != "absent"
+  when: true in installation_required_list
+  vars:
+    installation_required_list: "{{ ansible_play_hosts|
+                                    map('extract', hostvars, 'requires_nomad_installation')|
+                                    list }}"
   connection: local
   get_url:
     url: "https://releases.hashicorp.com/nomad/{{version}}/nomad_{{version}}_linux_arm.zip"
@@ -30,13 +49,13 @@
   run_once: true
 
 - name: Unarchive Nomad
-  when: install_state != "absent"
+  when: requires_nomad_installation
   ansible.builtin.unarchive:
     src: "/tmp/nomad_{{version}}_linux_arm.zip"
     dest: /opt/nomadInstall
 
 - name: Remove local downloaded archive
-  when: install_state != "absent"
+  when: requires_nomad_installation
   become: false
   connection: local
   file:
@@ -45,7 +64,7 @@
   run_once: true
 
 - name: Copy Nomad binary
-  when: install_state != "absent"
+  when: requires_nomad_installation
   copy:
     src: "/opt/nomadInstall/nomad"
     dest: "/usr/bin/nomad"
@@ -121,7 +140,6 @@
     owner: root
     mode: 0700
 
-
 - name: Install client.hcl
   when: install_state != "absent" and 'nomad_client' in group_names
   template:
@@ -130,7 +148,6 @@
     group: root
     owner: root
     mode: 0700
-
 
 - name: Start and Enable Nomad service
   when: install_state != "absent"
