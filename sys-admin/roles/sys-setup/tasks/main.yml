@@ -1,8 +1,8 @@
 ---
 # SSH Configuration
 
-- name: Enable ECDSA ssh key
-  lineinfile: dest=/etc/ssh/sshd_config regexp='^HostKey /etc/ssh/ssh_host_ecdsa_key' line='HostKey /etc/ssh/ssh_host_ecdsa_key'
+- name: Enable ED25519 ssh key
+  lineinfile: dest=/etc/ssh/sshd_config regexp='^HostKey /etc/ssh/ssh_host_ecdsa_key' line='HostKey /etc/ssh/ssh_host_ed25519_key'
 
 - name: Disable DSA host key
   lineinfile: 
@@ -28,7 +28,7 @@
 - lineinfile: dest=/etc/ssh/sshd_config regexp='^LogLevel' line='LogLevel VERBOSE'
  
 # Log sftp level file access (read/write/etc.) that would not be easily logged otherwise.
-- lineinfile: dest=/etc/ssh/sshd_config regexp='^Subsystem\s+sftp' line='Subsystem sftp  /usr/lib/openssh/sftp-server -f AUTHPRIV -l INFO'
+- lineinfile: dest=/etc/ssh/sshd_config regexp='^Subsystem\s+sftp' line='Subsystem sftp internal-sftp -f AUTHPRIV -l INFO'
  
 # Root login is not allowed for auditing reasons. This is because it's difficult to track which process belongs to which root user
 # On Linux, user sessions are tracking using a kernel-side session id, however, this session id is not recorded by OpenSSH.
@@ -42,7 +42,7 @@
 - lineinfile: dest=/etc/ssh/sshd_config regexp='^UsePrivilegeSeparation' line='UsePrivilegeSeparation sandbox'
     
 # Only allow specific users to login remotely (may be more suitable to change this to AllowGroups).
-- lineinfile: dest=/etc/ssh/sshd_config regexp='^AllowUsers' line='AllowUsers pi'
+- lineinfile: dest=/etc/ssh/sshd_config regexp='^AllowUsers' line='AllowUsers {{ allowed_ssh_user}}'
 
 - name: Empty MOTD
   copy:

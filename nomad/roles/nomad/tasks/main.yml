@@ -43,15 +43,15 @@
                                     list }}"
   connection: local
   get_url:
-    url: "https://releases.hashicorp.com/nomad/{{version}}/nomad_{{version}}_linux_arm.zip"
-    dest: "/tmp/nomad_{{version}}_linux_arm.zip"
+    url: "https://releases.hashicorp.com/nomad/{{version}}/nomad_{{version}}_linux_arm64.zip"
+    dest: "/tmp/nomad_{{version}}_linux_arm64.zip"
     checksum: "sha256:{{shaHash}}"
   run_once: true
 
 - name: Unarchive Nomad
   when: requires_nomad_installation
   ansible.builtin.unarchive:
-    src: "/tmp/nomad_{{version}}_linux_arm.zip"
+    src: "/tmp/nomad_{{version}}_linux_arm64.zip"
     dest: /opt/nomadInstall
 
 - name: Remove local downloaded archive
@@ -59,7 +59,7 @@
   become: false
   connection: local
   file:
-    path: "/tmp/nomad_{{version}}_linux_arm.zip"
+    path: "/tmp/nomad_{{version}}_linux_arm64.zip"
     state: absent
   run_once: true
 

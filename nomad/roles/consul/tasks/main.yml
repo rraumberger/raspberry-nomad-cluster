@@ -43,15 +43,15 @@
                                     list }}"
   connection: local
   get_url:
-    url: "https://releases.hashicorp.com/consul/{{version}}/consul_{{version}}_linux_armhfv6.zip"
-    dest: "/tmp/consul_{{version}}_linux_armhfv6.zip"
+    url: "https://releases.hashicorp.com/consul/{{version}}/consul_{{version}}_linux_arm64.zip"
+    dest: "/tmp/consul_{{version}}_linux_arm64.zip"
     checksum: "sha256:{{shaHash}}"
   run_once: true
 
 - name: Unarchive Consul
   when: requires_consul_installation
   ansible.builtin.unarchive:
-    src: "/tmp/consul_{{version}}_linux_armhfv6.zip"
+    src: "/tmp/consul_{{version}}_linux_arm64.zip"
     dest: /opt/consulInstall
 
 - name: Remove local downloaded archive
@@ -59,7 +59,7 @@
   become: false
   connection: local
   file:
-    path: "/tmp/consul_{{version}}_linux_armhfv6.zip"
+    path: "/tmp/consul_{{version}}_linux_arm64.zip"
     state: absent
   run_once: true
 
