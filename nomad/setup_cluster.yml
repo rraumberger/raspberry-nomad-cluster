@@ -1,0 +1,39 @@
+---
+
+- name: Install Consul
+  hosts: nomad_server,nomad_client
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+    - consul
+  vars:
+    install_state: latest
+    version: "1.10.2"
+    shaHash: "612c9d1fc32d53a9fa3a911fe79cfd7107832fb0c57dca2a710078b5d7af9759"
+
+- name: Install Vault
+  hosts: nomad_server
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+    - vault
+  vars:
+    install_state: latest
+    version: "1.8.2"
+    shaHash: "0a03433509f2c594a0355deb67270c77fbc6d70e802cc5223584c3b60029e202"
+
+- name: Install Nomad
+  hosts: nomad_server,nomad_client
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+    - nomad
+  vars:
+    install_state: install
+    version: "1.1.4"
+    shaHash: "3a199b4b1cb10f89cb0ecb814c8a9990d68e2e3bcc0f3c1efdcca36b64d61f7c"
+    podman_driver_version: "0.3.0"
+    podman_driver_hash: "556fe25992e58362cfc7962fd0f3aeebcb2181743207dd9a0e4e3c4b241c85de"

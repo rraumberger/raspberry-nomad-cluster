@@ -1,0 +1,48 @@
+---
+
+- name: Shutdown Consul
+  ansible.builtin.systemd:
+    name: consul
+    state: stopped
+    enabled: false
+
+- name: Remove Consul service
+  file:
+    path: "/etc/systemd/system/consul.service"
+    state: absent
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Remove Consul binary
+  file:
+    path: "/usr/bin/consul"
+    state: "absent"
+
+- name: Remove installer download location /opt/consulInstall
+  file:
+    path: "/opt/consulInstall"
+    state: "absent"
+
+- name: Delete data directory /opt/consul
+  file:
+    path: "/opt/consul"
+    state: "absent"
+
+- name: Delete /etc/consul.d
+  file:
+    path: "/etc/consul.d"
+    state: "absent"
+
+- name: Remove consul user
+  ansible.builtin.user:
+    name: consul
+    group: consul
+    state: absent
+
+- name: Remove consul group
+  ansible.builtin.group:
+    name: consul
+    system: true
+    state: absent

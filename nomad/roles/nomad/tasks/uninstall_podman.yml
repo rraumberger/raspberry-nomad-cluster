@@ -1,0 +1,13 @@
+---
+
+- name: Stop and Disable Podman service
+  ansible.builtin.systemd:
+    name: podman
+    state: stopped
+    enabled: false
+
+- name: Uninstall Podman
+  community.general.pacman:
+    name: ['podman']
+    state: absent
+

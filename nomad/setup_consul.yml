@@ -1,0 +1,13 @@
+---
+
+- name: Install Consul
+  hosts: nomad_server,nomad_client
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+    - consul
+  vars:
+    install_state: latest
+    version: "1.10.2"
+    shaHash: "612c9d1fc32d53a9fa3a911fe79cfd7107832fb0c57dca2a710078b5d7af9759"

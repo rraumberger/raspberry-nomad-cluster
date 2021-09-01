@@ -1,0 +1,7 @@
+---
+
+- include_tasks: install_vault.yml
+  when: install_state != "absent"
+
+- include_tasks: uninstall_vault.yml
+  when: install_state == "absent"

@@ -1,0 +1,36 @@
+---
+
+- name: Shutdown Nomad
+  ansible.builtin.systemd:
+    name: nomad
+    state: stopped
+    enabled: false
+
+- name: Remove Nomad service
+  file:
+    path: "/etc/systemd/system/nomad.service"
+    state: absent
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Remove Nomad binary
+  file:
+    path: "/usr/bin/nomad"
+    state: "absent"
+
+- name: Remove installer download location /opt/nomadInstall
+  file:
+    path: "/opt/nomadInstall"
+    state: "absent"
+
+- name: Delete data directory /opt/nomad
+  file:
+    path: "/opt/nomad"
+    state: "absent"
+
+- name: Delete /etc/nomad.d
+  file:
+    path: "/etc/nomad.d"
+    state: "absent"

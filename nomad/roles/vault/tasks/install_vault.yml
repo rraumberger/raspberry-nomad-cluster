@@ -1,0 +1,103 @@
+---
+
+- name: Check installed version
+  ansible.builtin.command: /usr/bin/vault version | grep '{{ version }}'
+  register: is_same_version_installed
+  failed_when: ( is_same_version_installed.rc not in [ 0, 1, 2 ] )
+
+- name: DEBUG Installed version
+  ansible.builtin.debug:
+    msg: "{{ is_same_version_installed.stdout }}"
+
+- name: Set requires installation fact
+  set_fact:
+    requires_vault_installation: "{{ is_same_version_installed.rc != 0 }}"
+
+- name: Create installer download location /opt/vaultInstall
+  when: requires_vault_installation
+  file:
+    path: "/opt/vaultInstall"
+    state: "directory"
+
+- name: Download Vault
+  become: false
+  when: true in installation_required_list
+  vars:
+    installation_required_list: "{{ ansible_play_hosts|
+                                    map('extract', hostvars, 'requires_vault_installation')|
+                                    list }}"
+  connection: local
+  get_url:
+    url: "https://releases.hashicorp.com/vault/{{version}}/vault_{{version}}_linux_arm64.zip"
+    dest: "/tmp/vault_{{version}}_linux_arm64.zip"
+    checksum: "sha256:{{shaHash}}"
+  run_once: true
+
+- name: Unarchive Vault
+  when: requires_vault_installation
+  ansible.builtin.unarchive:
+    src: "/tmp/vault_{{version}}_linux_arm64.zip"
+    dest: /opt/vaultInstall
+
+- name: Remove local downloaded archive
+  when: requires_vault_installation
+  become: false
+  connection: local
+  file:
+    path: "/tmp/vault_{{version}}_linux_arm64.zip"
+    state: absent
+  run_once: true
+
+- name: Add vault group
+  ansible.builtin.group:
+    name: vault
+    system: true
+    state: present
+
+- name: Add vault user
+  ansible.builtin.user:
+    name: vault
+    group: vault
+    system: true
+    state: present
+
+- name: Copy Vault binary
+  when: requires_vault_installation
+  copy:
+    src: "/opt/vaultInstall/vault"
+    dest: "/usr/bin/vault"
+    group: vault
+    owner: vault
+    remote_src: yes
+    mode: 0700
+
+- name: Install Vault Service
+  template:
+    src: systemd.txt
+    dest: /etc/systemd/system/vault.service
+    group: root
+    owner: root
+    mode: 0644
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Create /etc/vault.d
+  file:
+    path: "/etc/vault.d"
+    state: "directory"
+
+- name: Install vault.hcl
+  template:
+    src: vault.hcl
+    dest: /etc/vault.d/vault.hcl
+    group: vault
+    owner: vault
+    mode: 0600
+
+- name: Start and Enable Vault service
+  ansible.builtin.systemd:
+    name: vault
+    state: restarted
+    enabled: yes

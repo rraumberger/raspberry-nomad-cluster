@@ -10,6 +10,6 @@ client {
     reserved_ports = "22"
   }
   options = {
-    "driver.allowlist" = "docker"
+    "driver.allowlist" = "podman,docker"
   }
 }

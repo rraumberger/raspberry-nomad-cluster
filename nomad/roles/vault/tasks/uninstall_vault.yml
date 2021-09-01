@@ -1,0 +1,48 @@
+---
+
+- name: Shutdown Vault
+  ansible.builtin.systemd:
+    name: vault
+    state: stopped
+    enabled: false
+
+- name: Remove Vault service
+  file:
+    path: "/etc/systemd/system/vault.service"
+    state: absent
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Remove Vault binary
+  file:
+    path: "/usr/bin/vault"
+    state: "absent"
+
+- name: Remove installer download location /opt/vaultInstall
+  file:
+    path: "/opt/vaultInstall"
+    state: "absent"
+
+- name: Delete data directory /opt/vault
+  file:
+    path: "/opt/vault"
+    state: "absent"
+
+- name: Delete /etc/vault.d
+  file:
+    path: "/etc/vault.d"
+    state: "absent"
+
+- name: Remove vault user
+  ansible.builtin.user:
+    name: vault
+    group: vault
+    state: absent
+
+- name: Remove vault group
+  ansible.builtin.group:
+    name: vault
+    system: true
+    state: absent

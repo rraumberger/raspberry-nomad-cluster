@@ -10,6 +10,16 @@
   vars:
     install_state: absent
 
+- name: Uninstall Vault
+  hosts: nomad_server
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+    - vault
+  vars:
+    install_state: absent
+
 - name: Uninstall Consul
   hosts: nomad_server,nomad_client
   remote_user: root

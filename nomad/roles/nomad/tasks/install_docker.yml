@@ -1,0 +1,13 @@
+---
+
+- name: Install Docker
+  community.general.pacman:
+    name: ['docker']
+    state: latest
+    update_cache: yes
+
+- name: Start and Enable Docker service
+  ansible.builtin.systemd:
+    name: docker
+    state: restarted
+    enabled: yes

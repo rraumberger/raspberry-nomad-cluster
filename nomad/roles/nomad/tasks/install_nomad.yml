@@ -1,0 +1,113 @@
+---
+
+- name: Check installed version
+  ansible.builtin.command: "/usr/bin/nomad version | grep '{{ version }}'"
+  register: is_same_version_installed
+  failed_when: ( is_same_version_installed.rc not in [ 0, 1, 2 ] )
+
+- name: DEBUG Installed version
+  ansible.builtin.debug:
+    msg: "{{ is_same_version_installed.stdout }}"
+
+- name: Set requires installation fact
+  set_fact:
+    requires_nomad_installation: "{{ is_same_version_installed.rc != 0 }}"
+
+- name: Create installer download location /opt/nomadInstall
+  when: requires_nomad_installation
+  file:
+    path: "/opt/nomadInstall"
+    state: "directory"
+
+- name: Download Nomad
+  become: false
+  when: true in installation_required_list
+  vars:
+    installation_required_list: "{{ ansible_play_hosts|
+                                    map('extract', hostvars, 'requires_nomad_installation')|
+                                    list }}"
+  connection: local
+  get_url:
+    url: "https://releases.hashicorp.com/nomad/{{version}}/nomad_{{version}}_linux_arm64.zip"
+    dest: "/tmp/nomad_{{version}}_linux_arm64.zip"
+    checksum: "sha256:{{shaHash}}"
+  run_once: true
+
+- name: Unarchive Nomad
+  when: requires_nomad_installation
+  ansible.builtin.unarchive:
+    src: "/tmp/nomad_{{version}}_linux_arm64.zip"
+    dest: /opt/nomadInstall
+
+- name: Remove local downloaded archive
+  when: requires_nomad_installation
+  become: false
+  connection: local
+  file:
+    path: "/tmp/nomad_{{version}}_linux_arm64.zip"
+    state: absent
+  run_once: true
+
+- name: Copy Nomad binary
+  when: requires_nomad_installation
+  copy:
+    src: "/opt/nomadInstall/nomad"
+    dest: "/usr/bin/nomad"
+    group: root
+    owner: root
+    remote_src: yes
+    mode: 0700
+
+- name: Create data directory /opt/nomad
+  file:
+    path: "/opt/nomad"
+    state: "directory"
+
+- name: Create plugin directory /opt/nomad/plugins
+  file:
+    path: "/opt/nomad/plugins"
+    state: "directory"
+
+- name: Install Nomad Service
+  template:
+    src: systemd.txt
+    dest: /etc/systemd/system/nomad.service
+    group: root
+    owner: root
+    mode: 0644
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Create /etc/nomad.d
+  file:
+    path: "/etc/nomad.d"
+    state: "directory"
+
+- name: Install nomad.hcl
+  template:
+    src: nomad.hcl
+    dest: /etc/nomad.d/nomad.hcl
+    group: root
+    owner: root
+    mode: 0600
+
+- name: Install server.hcl
+  when: "'nomad_server' in group_names"
+  template:
+    src: server.hcl
+    dest: /etc/nomad.d/server.hcl
+    group: root
+    owner: root
+    mode: 0600
+
+- name: Install client.hcl
+  when: "'nomad_client' in group_names"
+  template:
+    src: client.hcl
+    dest: /etc/nomad.d/client.hcl
+    group: root
+    owner: root
+    mode: 0600
+

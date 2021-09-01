@@ -19,3 +19,17 @@
         name: ['vim', 'zip', 'unzip']
         state: latest
         update_cache: yes
+    - name: Start and Enable Podman service
+      ansible.builtin.systemd:
+        name: podman
+        state: restarted
+        enabled: yes
+
+- name: Reboot
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - reboot:
+ 

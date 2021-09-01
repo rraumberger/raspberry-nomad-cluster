@@ -1,0 +1,13 @@
+---
+
+- name: Install Vault
+  hosts: nomad_server
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+    - vault
+  vars:
+    install_state: latest
+    version: "1.8.2"
+    shaHash: "0a03433509f2c594a0355deb67270c77fbc6d70e802cc5223584c3b60029e202"

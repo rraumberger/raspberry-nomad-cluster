@@ -1,0 +1,12 @@
+---
+
+- name: Stop and Disable Docker service
+  ansible.builtin.systemd:
+    name: docker
+    state: stopped
+    enabled: false
+
+- name: Uninstall Docker
+  community.general.pacman:
+    name: ['docker']
+    state: absent
