@@ -1,2 +1,7 @@
 ---
 allowed_ssh_user: user
+nomad_node_class: control-plane
+is_nomad_server: true
+is_nomad_client: true
+is_consul_client: true
+is_consul_server: true

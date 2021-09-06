@@ -94,7 +94,7 @@
     mode: 0600
 
 - name: Install server.hcl
-  when: "'nomad_server' in group_names"
+  when: "{{ is_nomad_server }}"
   template:
     src: server.hcl
     dest: /etc/nomad.d/server.hcl
@@ -103,6 +103,7 @@
     mode: 0600
 
 - name: Install client.hcl
+  when: "{{ is_nomad_client }}"
   template:
     src: client.hcl
     dest: /etc/nomad.d/client.hcl

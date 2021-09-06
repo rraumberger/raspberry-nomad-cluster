@@ -104,7 +104,7 @@
     mode: 0700
 
 - name: Install server.hcl
-  when: "'nomad_server' in group_names"
+  when: "{{ is_consul_server }}"
   template:
     src: server.hcl
     dest: /etc/consul.d/server.hcl
@@ -113,7 +113,7 @@
     mode: 0640
 
 - name: Install client.hcl
-  when: "'nomad_client' in group_names"
+  when: "{{ is_consul_client }}"
   template:
     src: client.hcl
     dest: /etc/consul.d/client.hcl
