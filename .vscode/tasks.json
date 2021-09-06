@@ -1,0 +1,37 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Setup Consul",
+            "type": "shell",
+            "command": "./setupConsul.sh hosts"
+        },
+        {
+            "label": "Setup Nomad",
+            "type": "shell",
+            "command": "./setupNomad.sh hosts"
+        },
+        {
+            "label": "Setup Vault",
+            "type": "shell",
+            "command": "./setupVault.sh hosts"
+        },
+        {
+            "label": "Setup Full Cluster",
+            "type": "shell",
+            "command": "./setupCluster.sh hosts"
+        },
+        {
+            "label": "Update Hosts",
+            "type": "shell",
+            "command": "./updateHosts.sh hosts"
+        },
+        {
+            "label": "Setup Systems",
+            "type": "shell",
+            "command": "./setupSys.sh hosts"
+        }
+    ]
+}

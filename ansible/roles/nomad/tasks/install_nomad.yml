@@ -103,7 +103,6 @@
     mode: 0600
 
 - name: Install client.hcl
-  when: "'nomad_client' in group_names"
   template:
     src: client.hcl
     dest: /etc/nomad.d/client.hcl

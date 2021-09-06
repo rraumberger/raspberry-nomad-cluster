@@ -12,4 +12,9 @@ client {
   options = {
     "driver.allowlist" = "podman,docker"
   }
+
+  host_volume "sys-data" {
+    path = "/sys"
+    read_only = true
+  }
 }
