@@ -1,2 +1,4 @@
 # Private Ansible Inventory
 hosts
+**/group_vars
+**/host_vars

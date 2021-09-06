@@ -1,6 +1,10 @@
 job "pi-temp-monitor" {
   datacenters = ["homenet"]
   type        = "system"
+  
+  constraint {
+    distinct_hosts = true
+  }
 
   group "temp-monitor" {
     count = 1

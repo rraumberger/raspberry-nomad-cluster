@@ -1,15 +1,37 @@
 job "boinc" {
   datacenters = ["homenet"]
   type        = "service"
+  all_at_once = true
+  priority = 40
+  
+  update {
+    health_check = "task_states" 
+    min_healthy_time = "30s"
+  }
 
+  constraint {
+    distinct_hosts = true
+  }
+  
+  constraint {
+    attribute = "${node.class}"
+    value = "computing"
+  }
+  
   group "client" {
-    count = 4
+    count = 3
 
     restart {
       attempts = 2
       interval = "30m"
       delay    = "15s"
       mode     = "fail"
+    }
+
+    reschedule {
+      delay = "2m"
+      delay_function = "constant"
+      unlimited = true
     }
 
     network {
@@ -25,13 +47,14 @@ job "boinc" {
 
       config {
         image = "boinc/client:arm64v8"
+        hostname = "${attr.unique.hostname}"
         ports = ["rpc"]
         command = "sh"
         args = ["-c", "mkdir -p /var/lib/boinc/slots && /usr/bin/start-boinc.sh"]
       }
 
       env {
-          BOINC_CMD_LINE_OPTIONS="--abort_jobs_on_exit --no_gpus --allow_remote_gui_rpc --gui_rpc_port ${NOMAD_PORT_rpc}"
+          BOINC_CMD_LINE_OPTIONS="--abort_jobs_on_exit --no_gpus --fetch_minimal_work --allow_remote_gui_rpc --gui_rpc_port ${NOMAD_PORT_rpc}"
       }
 
       template {
@@ -59,14 +82,21 @@ EOH
       config {
         image   = "boinc/client:arm64v8"
         command = "sh"
-        #args    = ["-c", "(sleep 15 && boinccmd --host ${NOMAD_ADDR_rpc} --passwd \"${BOINC_GUI_RPC_PASSWORD}\" --join_acct_mgr ${BOINC_CMD_OPTIONS} && boinccmd --host ${NOMAD_ADDR_rpc} --passwd \"${BOINC_GUI_RPC_PASSWORD}\" --acct_mgr info) | grep http || exit 1 && echo 'init success'"]
-        args    = ["-c", "boinccmd --host ${NOMAD_ADDR_rpc} --passwd \"${BOINC_GUI_RPC_PASSWORD}\" ${BOINC_CMD_OPTIONS}"]
+        args    = ["-c", "boinccmd --host ${NOMAD_ADDR_rpc} --passwd \"${BOINC_GUI_RPC_PASSWORD}\" --project_attach ${BOINC_CMD_1} && boinccmd --host ${NOMAD_ADDR_rpc} --passwd \"${BOINC_GUI_RPC_PASSWORD}\" --project_attach ${BOINC_CMD_2}"]
+      }
+
+      template {
+  data = <<EOH
+BOINC_CMD_1="{{key "boinc/climatePrediction.net"}}"
+EOH
+        destination = "/secrets/climatePrediction.env"
+        env         = true
       }
       template {
   data = <<EOH
-BOINC_CMD_OPTIONS="{{key "boinccmdParams"}}"
+BOINC_CMD_2="{{key "boinc/einsteinathome"}}"
 EOH
-        destination = "/secrets/boincCmdLineOptions.env"
+        destination = "/secrets/einsteinathome.env"
         env         = true
       }
 

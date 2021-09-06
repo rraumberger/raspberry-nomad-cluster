@@ -6,8 +6,6 @@
   become_method: sudo
   roles:
     - sys-setup
-  vars:
-    allowed_ssh_user: nomad
 
 - name: Install essential packages 
   hosts: all

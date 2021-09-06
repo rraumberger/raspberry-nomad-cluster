@@ -1,6 +1,6 @@
 client {
   enabled = true
-  node_class = "raspberry"
+  node_class = "{{ nomad_node_class }}"
   server_join {
     retry_join = [ "{{ groups['nomad_server']| join('\",\"') }}" ]
     retry_max = 10
