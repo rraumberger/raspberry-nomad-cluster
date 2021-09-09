@@ -1,12 +1,10 @@
 job "boinc" {
   datacenters = ["homenet"]
   type        = "service"
-  all_at_once = true
   priority = 40
   
   update {
-    health_check = "task_states" 
-    min_healthy_time = "30s"
+    health_check = "task_states"
   }
 
   constraint {
@@ -82,29 +80,16 @@ EOH
       config {
         image   = "boinc/client:arm64v8"
         command = "sh"
-        args    = ["-c", "boinccmd --host ${NOMAD_ADDR_rpc} --passwd \"${BOINC_GUI_RPC_PASSWORD}\" --project_attach ${BOINC_CMD_1} && boinccmd --host ${NOMAD_ADDR_rpc} --passwd \"${BOINC_GUI_RPC_PASSWORD}\" --project_attach ${BOINC_CMD_2}"]
+        args    = ["-c", "sleep 15 && boinccmd --host ${NOMAD_ADDR_rpc} --passwd \"${BOINC_GUI_RPC_PASSWORD}\" --project_attach ${BOINC_CMD_1} && boinccmd --host ${NOMAD_ADDR_rpc} --passwd \"${BOINC_GUI_RPC_PASSWORD}\" --project_attach ${BOINC_CMD_2}"]
       }
 
       template {
   data = <<EOH
 BOINC_CMD_1="{{key "boinc/climatePrediction.net"}}"
-EOH
-        destination = "/secrets/climatePrediction.env"
-        env         = true
-      }
-      template {
-  data = <<EOH
 BOINC_CMD_2="{{key "boinc/einsteinathome"}}"
-EOH
-        destination = "/secrets/einsteinathome.env"
-        env         = true
-      }
-
-      template {
-  data = <<EOH
 BOINC_GUI_RPC_PASSWORD="{{key "BOINC_GUI_RPC_PASSWORD"}}"
 EOH
-        destination = "/secrets/BOINC_GUI_RPC_PASSWORD.env"
+        destination = "/secrets/secrets.env"
         env         = true
       }
     }
