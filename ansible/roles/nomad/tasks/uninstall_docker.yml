@@ -5,8 +5,10 @@
     name: docker
     state: stopped
     enabled: false
+  ignore_errors: yes
 
 - name: Uninstall Docker
   community.general.pacman:
     name: ['docker']
     state: absent
+    extra_args: --recursive --nosave

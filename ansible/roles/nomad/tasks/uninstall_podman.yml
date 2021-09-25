@@ -5,6 +5,7 @@
     name: podman
     state: stopped
     enabled: false
+  ignore_errors: yes
 
 - name: Uninstall Podman
   community.general.pacman:

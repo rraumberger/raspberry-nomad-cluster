@@ -1,0 +1,7 @@
+---
+
+- name: Uninstall Glusterfs
+  community.general.pacman:
+    name: ['glusterfs']
+    state: absent
+    extra_args: --recursive --nosave

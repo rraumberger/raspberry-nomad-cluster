@@ -5,6 +5,7 @@
     name: consul
     state: stopped
     enabled: false
+  ignore_errors: yes
 
 - name: Remove Consul service
   file:

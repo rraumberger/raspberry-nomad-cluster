@@ -1,0 +1,19 @@
+---
+
+- include_tasks: install_glusterfs.yml
+  when: install_state != "absent"
+
+- include_tasks: install_cluster.yml
+  when: install_state != "absent" and install_type == "cluster"
+
+- include_tasks: install_gluster_mount.yml
+  when: install_state != "absent"
+
+- include_tasks: uninstall_gluster_mount.yml
+  when: install_state == "absent"
+
+- include_tasks: uninstall_cluster.yml
+  when: install_state == "absent" and install_type == "cluster"
+
+- include_tasks: uninstall_glusterfs.yml
+  when: install_state == "absent"

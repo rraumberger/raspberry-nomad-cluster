@@ -1,0 +1,23 @@
+---
+
+- name: Start and Enable Glusterd service
+  ansible.builtin.systemd:
+    name: glusterd
+    state: started
+    enabled: yes
+
+- name: Create trusted storage pool
+  gluster.gluster.gluster_peer:
+    state: present
+    nodes: "{{ gluster_node_ips }}"
+  run_once: true
+
+- name: Create gluster volume
+  gluster.gluster.gluster_volume:
+    state: present
+    name: "{{ gluster_volume_name }}"
+    bricks:  "{{ gluster_brick }}"
+    rebalance: yes
+    cluster: "{{ gluster_node_ips }}"
+    replicas: 2
+  run_once: true

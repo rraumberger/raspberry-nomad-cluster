@@ -1,0 +1,22 @@
+---
+- name: Install Gluster Server
+  hosts: storage
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+    - glusterfs
+  vars:
+    install_type: cluster
+    install_state: present
+
+- name: Install Gluster Clients
+  hosts: all:!storage
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+    - glusterfs
+  vars:
+    install_type: client
+    install_state: present

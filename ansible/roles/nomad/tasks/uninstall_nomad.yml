@@ -5,6 +5,7 @@
     name: nomad
     state: stopped
     enabled: false
+  ignore_errors: yes
 
 - name: Remove Nomad service
   file:

@@ -1,0 +1,6 @@
+---
+- name: Install Glusterfs
+  community.general.pacman:
+    name: ['glusterfs']
+    state: latest
+    update_cache: yes
