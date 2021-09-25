@@ -2,7 +2,7 @@ job "boinc" {
   datacenters = ["homenet"]
   type        = "service"
   priority = 40
-  
+
   update {
     health_check = "task_states"
   }
@@ -10,12 +10,12 @@ job "boinc" {
   constraint {
     distinct_hosts = true
   }
-  
+
   constraint {
     attribute = "${node.class}"
     value = "computing"
   }
-  
+
   group "client" {
     count = 3
 
@@ -35,9 +35,9 @@ job "boinc" {
     network {
       port "rpc" {}
     }
-   
+
     ephemeral_disk {
-      size = 6000
+      size = 12000
     }
 
     task "client" {
@@ -52,7 +52,7 @@ job "boinc" {
       }
 
       env {
-          BOINC_CMD_LINE_OPTIONS="--abort_jobs_on_exit --no_gpus --fetch_minimal_work --allow_remote_gui_rpc --gui_rpc_port ${NOMAD_PORT_rpc}"
+          BOINC_CMD_LINE_OPTIONS="--abort_jobs_on_exit --no_gpus --allow_remote_gui_rpc --gui_rpc_port ${NOMAD_PORT_rpc}"
       }
 
       template {
@@ -79,14 +79,18 @@ EOH
 
       config {
         image   = "boinc/client:arm64v8"
-        command = "sh"
-        args    = ["-c", "sleep 15 && boinccmd --host ${NOMAD_ADDR_rpc} --passwd \"${BOINC_GUI_RPC_PASSWORD}\" --project_attach ${BOINC_CMD_1} && boinccmd --host ${NOMAD_ADDR_rpc} --passwd \"${BOINC_GUI_RPC_PASSWORD}\" --project_attach ${BOINC_CMD_2}"]
+        command = "bash"
+        args    = ["-c", "sleep 15 && (while read i; do if [ ! -z \"$i\" ]; then boinccmd --host ${NOMAD_ADDR_rpc} --passwd \"${BOINC_GUI_RPC_PASSWORD}\" --project_attach $i; fi; done < <(env | grep BOINC_CMD_ | cut -d '=' -f 2))"]
       }
 
       template {
   data = <<EOH
-BOINC_CMD_1="{{key "boinc/climatePrediction.net"}}"
+BOINC_CMD_1="{{key "boinc/universeAtHome"}}"
 BOINC_CMD_2="{{key "boinc/einsteinathome"}}"
+BOINC_CMD_3="{{key "boinc/lhcAtHome"}}"
+BOINC_CMD_4="{{key "boinc/milkywayAtHome"}}"
+BOINC_CMD_5="{{key "boinc/climatePrediction.net"}}"
+BOINC_CMD_6="{{key "boinc/worldCommunityGrid"}}"
 BOINC_GUI_RPC_PASSWORD="{{key "BOINC_GUI_RPC_PASSWORD"}}"
 EOH
         destination = "/secrets/secrets.env"
