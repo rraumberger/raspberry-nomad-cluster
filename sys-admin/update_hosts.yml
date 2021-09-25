@@ -6,6 +6,7 @@
   become_method: sudo
   roles:
     - sys-upgrade
+  serial: 2
  
 - name: Reboot
   hosts: all

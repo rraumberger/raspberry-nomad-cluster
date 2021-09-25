@@ -1,0 +1,172 @@
+---
+- name: Install Dynatrace OneAgent
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  collections:
+    - dynatrace.oneagent
+  tasks:
+    - import_role:
+        name: oneagent
+  vars:
+    oneagent_install_args:
+      - --restart-service
+      - --set-network-zone '{{ oneagent_network_zone }}'
+      - --set-host-group '{{ group_names[0] }}'
+  serial: 2
+
+
+##################################################################################
+#
+#                                   BIG
+#                                   FAT
+#                       !!!!!!!!!DISCLAIMER!!!!!!!!!
+#
+# In case you stumble across this script, please note that Dynatrace does not
+# support Dynatrace ActiveGate installations on ARM architecture
+# and especially not the way it's done in this script!
+#
+# The intention of this script is just to get the job done for my private homelab
+# and certainly not any "real" environments.
+#
+# While this script indeed gets it done, I certainly do not recommend under
+# any circumstances to use this outside of very experimental environments
+# and even for those environments I suggest to question your motives again.
+#
+# Long story short,
+# DO NOT USE THIS!
+# .. or do.. I'm just a stranger on the internet  ¯\_(ツ)_/¯
+#
+# Just be aware that neither Dynatrace nor myself
+# will support the resulting installation
+# or the installation method itself.
+# You're on your own with this hack.
+#
+##################################################################################
+
+- name: Prepare Activegate Native libs
+  hosts: controller[0]
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - file: # Temp download location
+        state: directory
+        path: "{{ artifact_base_path }}/activegate-native-libs/downloads"
+        mode: 0777
+    - file: # Folder to be copied
+        state: directory
+        path: "{{ artifact_base_path }}/activegate-native-libs/native"
+        mode: 0777
+    # Snappy
+    - file:
+        state: directory
+        path: "{{ artifact_base_path }}/activegate-native-libs/snappy"
+        mode: 0777
+    - name: Download Snappy
+      become: no
+      get_url:
+        url: "https://repo1.maven.org/maven2/org/xerial/snappy/snappy-java/{{ snappy_version }}/snappy-java-{{ snappy_version }}.jar"
+        dest: "{{ artifact_base_path }}/activegate-native-libs/downloads/snappy-java-{{ snappy_version }}.jar"
+        force: no
+    - name: Extract Snappy
+      become: no
+      ansible.builtin.unarchive:
+        src: "{{ artifact_base_path }}/activegate-native-libs/downloads/snappy-java-{{ snappy_version }}.jar"
+        dest: "{{ artifact_base_path }}/activegate-native-libs/snappy"
+        remote_src: yes
+    - ansible.builtin.copy:
+        src: "{{ artifact_base_path }}/activegate-native-libs/snappy/org/xerial/snappy/native/Linux/aarch64/libsnappyjava.so"
+        dest: "{{ artifact_base_path }}/activegate-native-libs/native/libsnappyjava.so"
+        remote_src: yes
+    # Zstd
+    - file:
+        state: directory
+        path: "{{ artifact_base_path }}/activegate-native-libs/zstd"
+        mode: 0777
+    - name: Download Zstd
+      become: no
+      get_url:
+        url: "https://repo1.maven.org/maven2/com/github/luben/zstd-jni/{{ zstd_version }}/zstd-jni-{{ zstd_version }}-linux_aarch64.jar"
+        dest: "{{ artifact_base_path }}/activegate-native-libs/downloads/zstd-jni-{{ zstd_version }}-linux_aarch64.jar"
+        force: no
+    - name: Extract Zstd
+      become: no
+      ansible.builtin.unarchive:
+        src: "{{ artifact_base_path }}/activegate-native-libs/downloads/zstd-jni-{{ zstd_version }}-linux_aarch64.jar"
+        dest: "{{ artifact_base_path }}/activegate-native-libs/zstd"
+        remote_src: yes
+    - ansible.builtin.copy:
+        src: "{{ artifact_base_path }}/activegate-native-libs/zstd/linux/aarch64/libzstd-jni-{{ zstd_version }}.so"
+        dest: "{{ artifact_base_path }}/activegate-native-libs/native/libzstd-jni.so"
+        remote_src: yes
+  vars:
+    snappy_version: "1.1.8.4"
+    zstd_version: "1.5.0-4"
+
+- name: Install Dynatrace ActiveGate
+  hosts: controller[0]
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Install OpenJdk JRE 11
+      community.general.pacman:
+        name: ['jre11-openjdk']
+        state: latest
+        update_cache: yes
+    - name: Download ActiveGate installer
+      get_url:
+        url: "{{ oneagent_environment_url }}/api/v1/deployment/installer/gateway/unix/latest?arch={{ oneagent_installer_arch }}&flavor=default"
+        dest: "{{ artifact_base_path }}/Dynatrace-ActiveGate-Linux-{{ oneagent_installer_arch }}.sh"
+        headers:
+          Authorization: "Api-Token {{ oneagent_paas_token }}"
+
+    - name: Fake platform architecture # Officially arm64 is not a supported architecture. Oh well. Let's just pretend we are x86_64
+      lineinfile:
+        path: "{{ artifact_base_path }}/Dynatrace-ActiveGate-Linux-{{ oneagent_installer_arch }}.sh"
+        regexp: '^(\s*)ARCH='
+        line: '\g<1>ARCH=x86_64'
+        backrefs: yes
+    - name: Prevent the installation of the bundled JRE # Prevent copying of the bundled JRE since we want to use the arm64 one
+      lineinfile:
+        path: "{{ artifact_base_path }}/Dynatrace-ActiveGate-Linux-{{ oneagent_installer_arch }}.sh"
+        regexp: '^(\s*)copyJre\s'
+        state: absent
+    - name: Replace bundled native libs by the prepared arm64 ones
+      lineinfile:
+        path: "{{ artifact_base_path }}/Dynatrace-ActiveGate-Linux-{{ oneagent_installer_arch }}.sh"
+        search_string: '  chmod 0755 "${INSTALL_DIR}/${LIB_SUBFOLDER}"' # Leading spaces are matched to avoid recursive finds on reexecution
+        line: 'rm -rf "${INSTALL_DIR}/${LIB_SUBFOLDER}/native" && cp -r {{ artifact_base_path }}/activegate-native-libs/native "${INSTALL_DIR}/${LIB_SUBFOLDER}/native" && chmod 0755 "${INSTALL_DIR}/${LIB_SUBFOLDER}"'
+    - name: Copy custom.properties
+      template:
+        src: custom.properties
+        dest: /tmp/custom.properties
+        mode: 0640
+    - name: Inject initial custom.properties
+      lineinfile:
+        path: "{{ artifact_base_path }}/Dynatrace-ActiveGate-Linux-{{ oneagent_installer_arch }}.sh"
+        search_string: 'touch "${CONF_PATH}/${CUSTOMPROP}"'
+        line: 'cp /tmp/custom.properties "${CONF_PATH}/${CUSTOMPROP}"'
+    - name: Ensure ActiveGate install folder
+      file:
+        state: directory
+        path: /opt/dynatrace/gateway
+        mode: 0755
+    - name: Link arm64 JRE to ActiveGate install folder
+      file:
+        state: link
+        path: /opt/dynatrace/gateway/jre
+        src: /usr/lib/jvm/java-11-openjdk/
+    - name: Ensure init.d directory # Not sure why init.d folders are required to exist even though it will use systemd. Let's just pretend that we have a init.d directory.
+      file:
+        state: directory
+        path: /etc/init.d
+        mode: 0755
+    - name: Run ActiveGate installer
+      command:
+        cmd: "/bin/sh {{ artifact_base_path }}/Dynatrace-ActiveGate-Linux-{{ oneagent_installer_arch }}.sh"
+      environment:
+        DYNATRACE_ACTIVEGATE_MODULE_SIGNATURE_VERIFICATION_DISABLED: true # Required since we modified the installer
+  serial: 1

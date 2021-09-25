@@ -1,0 +1,21 @@
+---
+- name: Install essential packages
+  community.general.pacman:
+    name: ['xfsprogs']
+    state: latest
+    update_cache: yes
+
+- name: Format storage disks with xfs
+  community.general.filesystem:
+    fstype: xfs
+    dev: "{{ storage_device }}"
+
+- name: Mount storage disk
+  ansible.posix.mount:
+    path: "{{ storage_mount_path }}"
+    src: "{{ storage_device }}"
+    fstype: xfs
+    passno: "2"
+    opts: defaults
+    state: mounted
+    backup: yes

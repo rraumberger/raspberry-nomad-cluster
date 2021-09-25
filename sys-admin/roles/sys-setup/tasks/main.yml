@@ -1,12 +1,17 @@
 ---
 # SSH Configuration
+- name: Add authorized SSH key
+  authorized_key:
+    user: "{{ allowed_ssh_user }}"
+    state: present
+    key: "{{ lookup('file', '{{ ssh_public_key_file }}') }}"
 
 - name: Enable ED25519 ssh key
   lineinfile: dest=/etc/ssh/sshd_config regexp='^HostKey /etc/ssh/ssh_host_ecdsa_key' line='HostKey /etc/ssh/ssh_host_ed25519_key'
 
 - name: Disable DSA host key
-  lineinfile: 
-    dest: /etc/ssh/sshd_config 
+  lineinfile:
+    dest: /etc/ssh/sshd_config
     regexp: '^HostKey /etc/ssh/ssh_host_dsa_key'
     state: absent
 
@@ -17,32 +22,32 @@
 - file:
     dest: /etc/ssh/ssh_host_dsa_key
     state: absent
- 
+
 - name: Allow only public key authentication
   lineinfile: dest=/etc/ssh/sshd_config regexp='^#?AuthenticationMethods' line='AuthenticationMethods publickey'
 - lineinfile: dest=/etc/ssh/sshd_config regexp='^#?PasswordAuthentication' line='PasswordAuthentication no'
 - lineinfile: dest=/etc/ssh/sshd_config regexp='^#?ChallengeResponseAuthentication' line='ChallengeResponseAuthentication no'
-- lineinfile: dest=/etc/ssh/sshd_config regexp='^#?PubkeyAuthentication' line='PubkeyAuthentication yes'   
-      
+- lineinfile: dest=/etc/ssh/sshd_config regexp='^#?PubkeyAuthentication' line='PubkeyAuthentication yes'
+
 # LogLevel VERBOSE logs user's key fingerprint on login. Needed to have a clear audit track of which key was using to log in.
 - lineinfile: dest=/etc/ssh/sshd_config regexp='^LogLevel' line='LogLevel VERBOSE'
- 
+
 # Log sftp level file access (read/write/etc.) that would not be easily logged otherwise.
 - lineinfile: dest=/etc/ssh/sshd_config regexp='^Subsystem\s+sftp' line='Subsystem sftp internal-sftp -f AUTHPRIV -l INFO'
- 
+
 # Root login is not allowed for auditing reasons. This is because it's difficult to track which process belongs to which root user
 # On Linux, user sessions are tracking using a kernel-side session id, however, this session id is not recorded by OpenSSH.
 # Additionally, only tools such as systemd and auditd record the process session id.
 # On other OSes, the user session id is not necessarily recorded at all kernel-side.
 # Using regular users in combination with /bin/su or /usr/bin/sudo ensure a clear audit track.
 - lineinfile: dest=/etc/ssh/sshd_config regexp='^PermitRootLogin' line='PermitRootLogin No'
- 
+
 # Use kernel sandbox mechanisms where possible in unprivileged processes
 # Systrace on OpenBSD, Seccomp on Linux, seatbelt on MacOSX/Darwin, rlimit elsewhere.
 - lineinfile: dest=/etc/ssh/sshd_config regexp='^UsePrivilegeSeparation' line='UsePrivilegeSeparation sandbox'
-    
+
 # Only allow specific users to login remotely (may be more suitable to change this to AllowGroups).
-- lineinfile: dest=/etc/ssh/sshd_config regexp='^AllowUsers' line='AllowUsers {{ allowed_ssh_user}}'
+- lineinfile: dest=/etc/ssh/sshd_config regexp='^AllowUsers' line='AllowUsers {{ allowed_ssh_user }}'
 
 - name: Empty MOTD
   copy:
@@ -75,8 +80,8 @@
     regexp: "^(.*root.*)$"
     line: '\1 cgroup_enable=cpuset cgroup_enable=memory cgroup_memory=1'
 
-- name: Set hostname
-  copy:
-    content: "{{ hostname }}"
-    dest: /etc/hostname
-    mode: 0644
+- name: Disable Wifi module
+  lineinfile: dest=/boot/config.txt line='dtoverlay=disable-wifi'
+
+- name: Disable Bluetooth module
+  lineinfile: dest=/boot/config.txt line='dtoverlay=disable-bt'
