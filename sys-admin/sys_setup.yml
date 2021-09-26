@@ -18,7 +18,7 @@
         state: latest
         update_cache: yes
 
-- name: Install essential packages
+- name: Remove unnecessary packages
   hosts: all
   remote_user: root
   become: yes

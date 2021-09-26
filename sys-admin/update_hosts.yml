@@ -6,8 +6,8 @@
   become_method: sudo
   roles:
     - sys-upgrade
-  serial: 2
- 
+  serial: 6
+
 - name: Reboot
   hosts: all
   remote_user: root
@@ -15,4 +15,3 @@
   become_method: sudo
   tasks:
     - reboot:
- 

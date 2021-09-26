@@ -1,0 +1,7 @@
+##
+## Custom mirrorlist. Managed via Ansible.
+##
+
+{% for mirror in manjaro_mirrors %}
+Server = {{ mirror }}/arm-stable/$repo/$arch
+{% endfor %}

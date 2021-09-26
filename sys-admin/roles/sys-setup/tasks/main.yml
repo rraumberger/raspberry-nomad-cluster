@@ -85,3 +85,11 @@
 
 - name: Disable Bluetooth module
   lineinfile: dest=/boot/config.txt line='dtoverlay=disable-bt'
+
+- name: Add custom mirrorlist
+  template:
+    src: mirrorlist
+    dest: /etc/pacman.d/mirrorlist
+    group: root
+    owner: root
+    mode: 0644
