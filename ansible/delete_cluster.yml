@@ -1,7 +1,7 @@
 ---
 
 - name: Uninstall Nomad
-  hosts: nomad_server,nomad_client
+  hosts: all
   remote_user: root
   become: yes
   become_method: sudo
@@ -11,7 +11,7 @@
     install_state: absent
 
 - name: Uninstall Vault
-  hosts: nomad_server
+  hosts: controller
   remote_user: root
   become: yes
   become_method: sudo
@@ -21,11 +21,22 @@
     install_state: absent
 
 - name: Uninstall Consul
-  hosts: nomad_server,nomad_client
+  hosts: all
   remote_user: root
   become: yes
   become_method: sudo
   roles:
     - consul
   vars:
+    install_state: absent
+
+- name: Uninstall Gluster Clients
+  hosts: all:!storage
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+    - glusterfs
+  vars:
+    install_type: client
     install_state: absent

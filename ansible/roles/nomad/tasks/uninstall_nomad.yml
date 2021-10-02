@@ -26,12 +26,24 @@
     path: "/opt/nomadInstall"
     state: "absent"
 
-- name: Delete data directory /opt/nomad
+- name: Delete data directory
   file:
-    path: "/opt/nomad"
+    path: "{{ nomad_data_dir }}"
     state: "absent"
+  when: delete_data
+
+- name: Delete shared data directory
+  file:
+    path: "{{ nomad_shared_dir }}"
+    state: "absent"
+  when: delete_data
 
 - name: Delete /etc/nomad.d
   file:
     path: "/etc/nomad.d"
     state: "absent"
+
+- name: Cleanup failed systemd service
+  command:
+    cmd: systemctl reset-failed nomad
+  ignore_errors: yes

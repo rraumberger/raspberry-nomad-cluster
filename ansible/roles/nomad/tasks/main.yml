@@ -3,27 +3,14 @@
 - include_tasks: install_docker.yml
   when: install_state != "absent"
 
-- include_tasks: install_podman.yml
-  when: install_state != "absent"
-
 - include_tasks: install_nomad.yml
-  when: install_state != "absent"
-
-- include_tasks: install_podman_driver.yml
   when: install_state != "absent"
 
 - include_tasks: start_nomad.yml
   when: install_state != "absent"
 
-- include_tasks: uninstall_podman_driver.yml
-  when: install_state == "absent"
-  
 - include_tasks: uninstall_nomad.yml
   when: install_state == "absent"
 
-- include_tasks: uninstall_podman.yml
-  when: install_state == "absent"
-  
 - include_tasks: uninstall_docker.yml
   when: install_state == "absent"
-  

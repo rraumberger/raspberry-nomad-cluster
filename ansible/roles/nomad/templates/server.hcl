@@ -1,4 +1,4 @@
 server {
   enabled = true
-  bootstrap_expect = {{ groups['nomad_server'] | length }}
+  bootstrap_expect = {{ hostvars | map('extract', hostvars) | selectattr('is_nomad_server') | length }}
 }

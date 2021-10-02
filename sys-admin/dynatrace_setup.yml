@@ -12,8 +12,8 @@
   vars:
     oneagent_install_args:
       - --restart-service
-      - --set-network-zone '{{ oneagent_network_zone }}'
-      - --set-host-group '{{ group_names[0] }}'
+      - --set-network-zone='{{ oneagent_network_zone }}'
+      - --set-host-group='{{ group_names[0] }}'
   serial: 2
 
 

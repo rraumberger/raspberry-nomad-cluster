@@ -44,3 +44,4 @@
   become_method: sudo
   tasks:
     - reboot:
+  serial: 1

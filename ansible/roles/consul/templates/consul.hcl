@@ -1,5 +1,5 @@
 datacenter = "homenet"
-data_dir = "/opt/consul"
+data_dir = "{{ consul_data_dir }}"
 advertise_addr = "{{ '{{ GetInterfaceIP \\"eth0\\" }}' }}"
 bind_addr = "{{ '{{ GetInterfaceIP \\"eth0\\" }}' }}"
 client_addr = "0.0.0.0"

@@ -1,5 +1,5 @@
 datacenter = "homenet"
-data_dir = "/opt/nomad"
+data_dir = "{{ nomad_data_dir }}"
 
 telemetry {
   collection_interval = "1s"

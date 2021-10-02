@@ -58,14 +58,14 @@
     remote_src: yes
     mode: 0700
 
-- name: Create data directory /opt/nomad
+- name: Create data directory
   file:
-    path: "/opt/nomad"
+    path: "{{ nomad_data_dir }}"
     state: "directory"
 
-- name: Create plugin directory /opt/nomad/plugins
+- name: Create shared data directory
   file:
-    path: "/opt/nomad/plugins"
+    path: "{{ nomad_shared_dir }}"
     state: "directory"
 
 - name: Install Nomad Service
@@ -94,7 +94,7 @@
     mode: 0600
 
 - name: Install server.hcl
-  when: "{{ is_nomad_server }}"
+  when: is_nomad_server
   template:
     src: server.hcl
     dest: /etc/nomad.d/server.hcl
@@ -103,7 +103,7 @@
     mode: 0600
 
 - name: Install client.hcl
-  when: "{{ is_nomad_client }}"
+  when: is_nomad_client
   template:
     src: client.hcl
     dest: /etc/nomad.d/client.hcl

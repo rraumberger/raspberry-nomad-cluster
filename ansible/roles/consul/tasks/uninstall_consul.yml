@@ -26,10 +26,11 @@
     path: "/opt/consulInstall"
     state: "absent"
 
-- name: Delete data directory /opt/consul
+- name: Delete data directory
   file:
-    path: "/opt/consul"
+    path: "{{ consul_data_dir }}"
     state: "absent"
+  when: delete_data
 
 - name: Delete /etc/consul.d
   file:
@@ -47,3 +48,8 @@
     name: consul
     system: true
     state: absent
+
+- name: Cleanup failed systemd service
+  command:
+    cmd: systemctl reset-failed consul
+  ignore_errors: yes

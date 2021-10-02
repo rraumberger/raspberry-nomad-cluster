@@ -15,3 +15,13 @@
   become_method: sudo
   tasks:
     - reboot:
+  serial: 1
+
+- name: Trigger remount to prevent not mounted Glusterfs after restart
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - command: mount -a
+  serial: 3

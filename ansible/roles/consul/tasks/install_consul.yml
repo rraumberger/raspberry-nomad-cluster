@@ -71,9 +71,9 @@
     remote_src: yes
     mode: 0700
 
-- name: Create data directory /opt/consul
+- name: Create data directory
   file:
-    path: "/opt/consul"
+    path: "{{ consul_data_dir }}"
     state: "directory"
     owner: consul
     group: consul
@@ -104,7 +104,7 @@
     mode: 0700
 
 - name: Install server.hcl
-  when: "{{ is_consul_server }}"
+  when: is_consul_server
   template:
     src: server.hcl
     dest: /etc/consul.d/server.hcl
@@ -113,7 +113,7 @@
     mode: 0640
 
 - name: Install client.hcl
-  when: "{{ is_consul_client }}"
+  when: is_consul_client
   template:
     src: client.hcl
     dest: /etc/consul.d/client.hcl

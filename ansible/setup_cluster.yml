@@ -1,5 +1,5 @@
 ---
-- include: setup_gluster.yml
-- include: setup_consul.yml
-- include: setup_vault.yml
-- include: setup_nomad.yml
+- import_playbook: setup_gluster.yml
+- import_playbook: setup_consul.yml
+- import_playbook: setup_vault.yml
+- import_playbook: setup_nomad.yml

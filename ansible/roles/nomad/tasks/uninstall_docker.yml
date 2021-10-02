@@ -12,3 +12,8 @@
     name: ['docker']
     state: absent
     extra_args: --recursive --nosave
+
+- name: Cleanup failed systemd service
+  command:
+    cmd: systemctl reset-failed docker
+  ignore_errors: yes

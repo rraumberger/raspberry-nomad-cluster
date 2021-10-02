@@ -5,6 +5,7 @@
     name: vault
     state: stopped
     enabled: false
+  ignore_errors: yes
 
 - name: Remove Vault service
   file:
@@ -25,11 +26,6 @@
     path: "/opt/vaultInstall"
     state: "absent"
 
-- name: Delete data directory /opt/vault
-  file:
-    path: "/opt/vault"
-    state: "absent"
-
 - name: Delete /etc/vault.d
   file:
     path: "/etc/vault.d"
@@ -46,3 +42,8 @@
     name: vault
     system: true
     state: absent
+
+- name: Cleanup failed systemd service
+  command:
+    cmd: systemctl reset-failed vault
+  ignore_errors: yes
