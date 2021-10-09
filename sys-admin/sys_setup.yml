@@ -18,6 +18,34 @@
         state: latest
         update_cache: yes
 
+- name: Start and Enable Cronie service
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - community.general.pacman:
+        name: ['cronie']
+        state: latest
+        update_cache: yes
+    - file:
+        path: /etc/cron.d/custom
+        state: directory
+    - template:
+        src: reportTemp.sh
+        dest: /etc/cron.d/custom/reportTemp.sh
+        group: root
+        owner: root
+        mode: 0700
+    - name: Report temp every minute
+      ansible.builtin.cron:
+        name: "report cpu temp"
+        job: "/etc/cron.d/custom/reportTemp.sh"
+    - ansible.builtin.systemd:
+        name: cronie
+        state: restarted
+        enabled: yes
+
 - name: Remove unnecessary packages
   hosts: all
   remote_user: root
