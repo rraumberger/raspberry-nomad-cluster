@@ -32,6 +32,13 @@
     state: "absent"
   when: delete_data
 
+- name: Delete host volume directories
+  file:
+    path: "{{ item.path }}"
+    state: "absent"
+  loop: "{{ nomad_host_volumes }}"
+  when: delete_data
+
 - name: Delete shared data directory
   file:
     path: "{{ nomad_shared_dir }}"

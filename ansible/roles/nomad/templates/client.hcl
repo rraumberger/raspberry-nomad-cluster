@@ -18,8 +18,10 @@ client {
     read_only = true
   }
 
-  host_volume "nomad-shared-data" {
-    path = "{{ nomad_shared_dir }}"
+{% for volume in nomad_host_volumes %}
+  host_volume "{{ volume.volumeKey }}" {
+    path = "{{ volume.path }}"
     read_only = false
   }
+{% endfor %}
 }

@@ -68,6 +68,12 @@
     path: "{{ nomad_shared_dir }}"
     state: "directory"
 
+- name: Create host volume directories
+  file:
+    path: "{{ item.path }}"
+    state: "directory"
+  loop: "{{ nomad_host_volumes }}"
+
 - name: Install Nomad Service
   template:
     src: systemd.txt
