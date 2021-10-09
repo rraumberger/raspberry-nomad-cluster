@@ -9,7 +9,7 @@
 
 - name: Uninstall Docker
   community.general.pacman:
-    name: ['docker']
+    name: ['docker', 'cni-plugins']
     state: absent
     extra_args: --recursive --nosave
 
