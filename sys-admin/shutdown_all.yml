@@ -1,0 +1,24 @@
+---
+- name: Shutdown Computing
+  hosts: computing
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - community.general.shutdown:
+
+- name: Shutdown Controller
+  hosts: controller
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - community.general.shutdown:
+
+- name: Shutdown Storage
+  hosts: storage
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - community.general.shutdown:
