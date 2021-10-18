@@ -1,2 +1,2 @@
 #!/bin/sh
-ansible-playbook -i "${1}" sys-admin/dynatrace_setup.yml
+ansible-playbook --ask-become-pass -i "${1}" sys-admin/dynatrace_setup.yml

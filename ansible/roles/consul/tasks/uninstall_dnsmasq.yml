@@ -1,0 +1,17 @@
+---
+- name: Stop and Disable dnsmasq service
+  ansible.builtin.systemd:
+    name: dnsmasq
+    state: stopped
+    enabled: no
+
+- name: Remove dnsmasq config dir
+  file:
+    path: /etc/dnsmasq.d
+    state: absent
+
+- name: Uninstall dnsmasq
+  community.general.pacman:
+    name: ['extra/dnsmasq']
+    state: absent
+    extra_args: --recursive --nosave

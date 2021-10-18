@@ -7,6 +7,11 @@
     enabled: false
   ignore_errors: yes
 
+- name: Uninstall daemon.json
+  file:
+    path: /etc/docker/daemon.json
+    state: absent
+
 - name: Uninstall Docker
   community.general.pacman:
     name: ['docker', 'cni-plugins']

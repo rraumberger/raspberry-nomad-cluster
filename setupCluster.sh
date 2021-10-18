@@ -1,3 +1,3 @@
 #!/bin/sh
 
-ansible-playbook -i "${1}" ansible/setup_cluster.yml
+ansible-playbook --ask-become-pass -i "${1}" ansible/setup_cluster.yml

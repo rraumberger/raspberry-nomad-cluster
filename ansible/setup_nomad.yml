@@ -9,7 +9,5 @@
     - nomad
   vars:
     install_state: install
-    version: "1.1.5"
-    shaHash: "f954d74ea99bff000ad66ae99760664e74ae0a14e7c4f43ed4b34c1dfb5e5d70"
-    podman_driver_version: "0.3.0"
-    podman_driver_hash: "556fe25992e58362cfc7962fd0f3aeebcb2181743207dd9a0e4e3c4b241c85de"
+    version: "{{ nomad_version }}"
+    shaHash: "{{ nomad_version_hash }}"

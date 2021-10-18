@@ -9,5 +9,5 @@
     - consul
   vars:
     install_state: latest
-    version: "1.10.3"
-    shaHash: "a6caf82433c48a8938bd308a8593c7336e8a0a9f841c7f1426ea7903b73cc8a1"
+    version: "{{ consul_version }}"
+    shaHash: "{{ consul_version_hash }}"

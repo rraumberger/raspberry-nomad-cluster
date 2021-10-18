@@ -1,0 +1,9 @@
+---
+
+- name: Install resolv.conf.head
+  template:
+    src: resolv.conf.head
+    dest: /etc/resolv.conf.head
+    group: root
+    owner: root
+    mode: 0640

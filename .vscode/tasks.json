@@ -32,6 +32,31 @@
             "label": "Setup Systems",
             "type": "shell",
             "command": "./setupSys.sh hosts"
+        },
+        {
+            "label": "Setup Dynatrace",
+            "type": "shell",
+            "command": "./setupDynatrace.sh hosts"
+        },
+        {
+            "label": "Setup Gluster",
+            "type": "shell",
+            "command": "./setupGluster.sh hosts"
+        },
+        {
+            "label": "Uninstall Cluster",
+            "type": "shell",
+            "command": "./uninstallCluster.sh hosts"
+        },
+        {
+            "label": "[Helper] Restart Service",
+            "type": "shell",
+            "command": "./helper_restart_systemd.sh hosts"
+        },
+        {
+            "label": "[Helper] Shutdown",
+            "type": "shell",
+            "command": "./helper_shutdown.sh hosts"
         }
     ]
 }

@@ -9,5 +9,5 @@
     - vault
   vars:
     install_state: latest
-    version: "1.8.3"
-    shaHash: "c783b6fa65008e01f64fdedc26658624ef19c84f9d08c32a19d6e2770dd937fd"
+    version: "{{ vault_version }}"
+    shaHash: "{{ vault_version_hash }}"

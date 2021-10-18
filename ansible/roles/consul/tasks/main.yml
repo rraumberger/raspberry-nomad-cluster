@@ -3,5 +3,17 @@
 - include_tasks: install_consul.yml
   when: install_state != "absent"
 
+- include_tasks: install_dnsmasq.yml
+  when: install_state != "absent" and consul_dnsmasq
+
+- include_tasks: install_resolv.yml
+  when: install_state != "absent" and consul_dnsmasq
+
+- include_tasks: uninstall_resolv.yml
+  when: install_state == "absent" and consul_dnsmasq
+
+- include_tasks: uninstall_dnsmasq.yml
+  when: install_state == "absent" and consul_dnsmasq
+
 - include_tasks: uninstall_consul.yml
   when: install_state == "absent"

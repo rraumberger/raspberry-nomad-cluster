@@ -1,0 +1,6 @@
+---
+
+- name: Uninstall resolv.conf.head
+  file:
+    path: /etc/resolv.conf.head
+    state: absent

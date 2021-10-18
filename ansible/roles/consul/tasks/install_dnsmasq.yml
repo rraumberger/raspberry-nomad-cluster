@@ -1,0 +1,27 @@
+---
+- name: Install dnsmasq
+  community.general.pacman:
+    name: ['extra/dnsmasq']
+    state: latest
+
+- name: Install dnsmasq config dir
+  file:
+    path: /etc/dnsmasq.d
+    state: directory
+
+- name: Install dnsmasq config
+  template:
+    src: dnsmasq
+    dest: /etc/dnsmasq.d/10-consul
+    group: root
+    owner: root
+    mode: 0640
+
+- name: Allow dnsmasq config dir
+  lineinfile: dest=/etc/dnsmasq.conf line='conf-dir=/etc/dnsmasq.d'
+
+- name: Start and Enable dnsmasq service
+  ansible.builtin.systemd:
+    name: dnsmasq
+    state: restarted
+    enabled: yes

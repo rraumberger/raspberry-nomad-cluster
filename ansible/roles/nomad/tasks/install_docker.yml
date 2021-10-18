@@ -6,6 +6,19 @@
     state: latest
     update_cache: yes
 
+- name: Install daemon.json
+  template:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+    group: root
+    owner: root
+    mode: 0644
+
+- name: Cleanup failed systemd service
+  command:
+    cmd: systemctl reset-failed docker
+  ignore_errors: yes
+
 - name: Start and Enable Docker service
   ansible.builtin.systemd:
     name: docker

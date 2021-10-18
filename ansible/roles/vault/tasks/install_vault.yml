@@ -1,17 +1,21 @@
 ---
 
-- name: Check installed version
-  ansible.builtin.command: /usr/bin/vault version | grep '{{ version }}'
-  register: is_same_version_installed
-  failed_when: ( is_same_version_installed.rc not in [ 0, 1, 2 ] )
+- name: Fetch installed version
+  ansible.builtin.command: /usr/bin/vault version
+  register: installed_version_out
+  failed_when: ( installed_version_out.rc not in [ 0, 1, 2 ] )
 
 - name: DEBUG Installed version
   ansible.builtin.debug:
-    msg: "{{ is_same_version_installed.stdout }}"
+    msg: "{{ installed_version_out.stdout }}"
 
 - name: Set requires installation fact
   set_fact:
-    requires_vault_installation: "{{ is_same_version_installed.rc != 0 }}"
+    requires_vault_installation: "{{ installed_version_out.rc != 0 or version not in installed_version_out.stdout}}"
+
+- name: DEBUG Installation required?
+  ansible.builtin.debug:
+    msg: "{{ requires_vault_installation }}"
 
 - name: Create installer download location /opt/vaultInstall
   when: requires_vault_installation

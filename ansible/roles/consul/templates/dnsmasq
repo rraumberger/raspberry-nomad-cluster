@@ -1,0 +1,17 @@
+# Enable forward lookup of the 'consul' domain:
+server=/.consul/127.0.0.1#8600
+
+# Main dns server
+server={{ consul_dnsmasq_dns_server }}
+
+#Fallback DNS in case primary dns is restarted or temporary offline
+server=1.1.1.1
+
+# Prevents dnsmasq from switching between the different nameservers
+strict-order
+
+# Disable default dhcp dns config
+no-resolv
+
+# Default cache size: 150
+cache-size=1000

@@ -20,4 +20,16 @@
     rebalance: yes
     cluster: "{{ gluster_node_ips }}"
     replicas: 2
+    options:
+      {
+        performance.cache-size: 256MB,
+        cluster.server-quorum-type: server,
+        cluster.self-heal-daemon: enable,
+        performance.client-io-threads: "off",
+        nfs.disable: "on",
+        transport.address-family: inet,
+        storage.fips-mode-rchecksum: "on",
+        cluster.granular-entry-heal: "on",
+        cluster.server-quorum-ratio: 51%
+      }
   run_once: true

@@ -1,0 +1,5 @@
+{
+{% if docker_mirror %}
+  "registry-mirrors": ["{{ docker_mirror }}"]
+{% endif %}
+}
