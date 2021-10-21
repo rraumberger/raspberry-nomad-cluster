@@ -1,4 +1,4 @@
-job "redis" {
+job "postgres" {
   datacenters = ["homenet"]
   type = "service"
 
@@ -11,21 +11,15 @@ job "redis" {
     value = "storage"
   }
 
-
-  group "cache" {
+  group "postgres" {
     count = 1
 
     network {
       mode = "bridge"
-      port "redis" {
-        static = 6379
-        to = 6379
+      port "postgres" {
+        static = 5432
+        to = 5432
       }
-    }
-
-    restart {
-      attempts = 5
-      interval = "15m"
     }
 
     reschedule {
@@ -38,28 +32,27 @@ job "redis" {
       size = 300
     }
 
-    volume "redis-data" {
+    volume "postgres-data" {
       type      = "host"
       read_only = false
-      source    = "redis-data"
+      source    = "postgres-data"
     }
 
-    task "redis" {
+    task "postgres" {
       driver = "docker"
 
       volume_mount {
-        volume      = "redis-data"
-        destination = "/data"
+        volume      = "postgres-data"
+        destination = "/var/lib/postgresql/data"
         read_only   = false
       }
 
       config {
-        image = "redis:latest"
-        volumes = [
-          "local/redis.conf:/usr/local/etc/redis/redis.conf",
-        ]
-        command = "redis-server"
-        args = ["/usr/local/etc/redis/redis.conf"]
+        image = "postgres:latest"
+      }
+
+      env {
+        POSTGRES_INITDB_ARGS="--data-checksums"
       }
 
       resources {
@@ -73,16 +66,19 @@ job "redis" {
 
       template {
         change_mode = "noop"
-        destination = "local/redis.conf"
-
+        destination = "secret/postgres.env"
+        env = true
         data = <<EOH
-requirepass {{with secret "homelab/data/redis"}}{{.Data.data.password}}{{end}}
+{{with secret "homelab/data/postgres"}}
+POSTGRES_USER="{{.Data.data.masterUsername}}"
+POSTGRES_PASSWORD="{{.Data.data.masterPassword}}"
+{{end}}
 EOH
       }
 
       service {
-        name = "redis"
-        port = "redis"
+        name = "postgres"
+        port = "postgres"
         check {
           name     = "alive"
           type     = "tcp"

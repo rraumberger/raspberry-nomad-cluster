@@ -27,7 +27,7 @@ job "envoy-gateway" {
     }
 
     service {
-      name = "envoy-ingress-service"
+      name = "envoy-ingress-http"
       port = "8080"
 
       connect {
@@ -40,6 +40,10 @@ job "envoy-gateway" {
               service {
                 name = "docker-registry"
                 hosts = ["registry.lab.raumberger.net"]
+              }
+              service {
+                name = "docker-mirror"
+                hosts = ["mirror.lab.raumberger.net"]
               }
               service {
                 name = "pihole"

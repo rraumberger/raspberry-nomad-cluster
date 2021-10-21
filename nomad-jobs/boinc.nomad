@@ -4,7 +4,8 @@ job "boinc" {
   priority = 40
 
   update {
-    health_check = "task_states"
+    max_parallel     = 3
+    health_check     = "task_states"
   }
 
   constraint {
@@ -18,19 +19,6 @@ job "boinc" {
 
   group "client" {
     count = 6
-
-    restart {
-      attempts = 2
-      interval = "30m"
-      delay    = "15s"
-      mode     = "fail"
-    }
-
-    reschedule {
-      delay = "2m"
-      delay_function = "constant"
-      unlimited = true
-    }
 
     volume "boinc" {
       type      = "host"
@@ -68,7 +56,7 @@ job "boinc" {
       }
 
       env {
-          BOINC_CMD_LINE_OPTIONS="--abort_jobs_on_exit --no_gpus --allow_remote_gui_rpc --gui_rpc_port ${NOMAD_PORT_rpc}"
+          BOINC_CMD_LINE_OPTIONS="--allow_remote_gui_rpc --gui_rpc_port ${NOMAD_PORT_rpc}"
       }
 
       template {
@@ -82,6 +70,33 @@ EOH
       resources {
          cpu    = 5500
          memory = 5722
+      }
+    }
+
+    task "metric-exporter" {
+      driver = "docker"
+
+      lifecycle {
+        hook = "poststart"
+        sidecar = true
+      }
+
+      config {
+        image   = "registry.lab.raumberger.net/boinc-metric-exporter:1.0.3"
+      }
+
+      env {
+        BOINC_ADDRESS="${NOMAD_ADDR_rpc}"
+        DYNATRACE_ONEAGENT_CTL="/opt/dynatrace/oneagent/agent/tools/oneagentctl"
+      }
+
+      template {
+  data = <<EOH
+DYNATRACE_METRIC_INGEST_TOKEN="{{with secret "homelab/data/dynatrace"}}{{.Data.data.metricIngestToken}}{{end}}"
+BOINC_RPC_PASSWORD="{{with secret "homelab/data/boinc"}}{{.Data.data.rpcPassword}}{{end}}"
+EOH
+        destination = "/secrets/secrets.env"
+        env         = true
       }
     }
 
@@ -109,6 +124,7 @@ BOINC_CMD_4="{{.Data.data.milkywayAtHomeUrl}} {{.Data.data.milkywayAtHome}}"
 BOINC_CMD_5="{{.Data.data.climatePredictionUrl}} {{.Data.data.climatePrediction}}"
 BOINC_CMD_6="{{.Data.data.worldCommunityGridUrl}} {{.Data.data.worldCommunityGrid}}"
 BOINC_CMD_7="{{.Data.data.rosettaAtHomeUrl}} {{.Data.data.rosettaAtHome}}"
+BOINC_CMD_8="{{.Data.data.ithenaUrl}} {{.Data.data.ithena}}"
 BOINC_GUI_RPC_PASSWORD="{{.Data.data.rpcPassword}}"
 {{end}}
 EOH
