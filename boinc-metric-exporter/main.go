@@ -440,10 +440,3 @@ func getDynatraceMetricsIngestToken() (string, error) {
 
 	return metricIngestToken, nil
 }
-
-/*
-curl --silent --show-error --insecure -L -X POST "${COMMUNICATION_SERVER}/e/${TENANT_ID}/api/v2/metrics/ingest" \
-     -H "Authorization: Api-Token ${METRIC_INGEST_TOKEN}" \
-     -H 'Content-Type: text/plain' \
-     --data-raw "cpu.temperature,dt.entity.host=HOST-${HOST_ID} ${CPU_TEMP}"
-*/
