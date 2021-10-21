@@ -1,5 +1,6 @@
 {
 {% if docker_mirror %}
-  "registry-mirrors": ["{{ docker_mirror }}"]
+  "registry-mirrors": ["{{ docker_mirror }}"],
+  "insecure-registries" : ["{{ insecure_docker_registry }}"]
 {% endif %}
 }

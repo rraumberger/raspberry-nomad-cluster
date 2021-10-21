@@ -24,3 +24,4 @@
     name: docker
     state: restarted
     enabled: yes
+  when: restart_docker
