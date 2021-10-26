@@ -27,7 +27,6 @@ job "dynatrace-activegate" {
 
       config {
         image = "registry.lab.raumberger.net/dynatrace-activegate:1.229.118.20211022-164028"
-        force_pull = true
       }
 
       resources {

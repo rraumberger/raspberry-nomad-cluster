@@ -63,6 +63,7 @@ job "pihole" {
       config {
         image = "pihole/pihole:latest"
         ports = ["dns"]
+        force_pull = true
       }
 
       env {
