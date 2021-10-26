@@ -67,6 +67,11 @@
     path: "{{ nomad_data_dir }}"
     state: "directory"
 
+- name: Create /var/log/nomad
+  file:
+    path: "/var/log/nomad"
+    state: "directory"
+
 - name: Create shared data directory
   file:
     path: "{{ nomad_shared_dir }}"

@@ -37,6 +37,11 @@
     path: "/etc/consul.d"
     state: "absent"
 
+- name: Delete /var/log/consul
+  file:
+    path: "/var/log/consul"
+    state: "absent"
+
 - name: Remove consul user
   ansible.builtin.user:
     name: consul

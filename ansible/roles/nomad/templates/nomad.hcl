@@ -1,5 +1,11 @@
 datacenter = "homenet"
 data_dir = "{{ nomad_data_dir }}"
+bind_addr = "{{ inventory_hostname }}"
+disable_update_check = true
+enable_syslog = true
+log_file = "/var/log/nomad/"
+log_rotate_max_files = 3
+#log_level = "debug"
 
 telemetry {
   collection_interval = "1s"

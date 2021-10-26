@@ -50,6 +50,11 @@
     path: "/etc/nomad.d"
     state: "absent"
 
+- name: Delete /var/log/nomad
+  file:
+    path: "/var/log/nomad"
+    state: "absent"
+
 - name: Cleanup failed systemd service
   command:
     cmd: systemctl reset-failed nomad

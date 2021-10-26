@@ -1,7 +1,7 @@
 ---
 
 - name: Fetch installed version
-  ansible.builtin.command: /usr/bin/consul version'
+  ansible.builtin.command: '/usr/bin/consul version'
   register: installed_version_out
   failed_when: ( installed_version_out.rc not in [ 0, 1, 2 ] )
 
@@ -98,6 +98,13 @@
   file:
     path: "/etc/consul.d"
     state: "directory"
+
+- name: Create /var/log/consul
+  file:
+    path: "/var/log/consul"
+    state: "directory"
+    group: consul
+    owner: consul
 
 - name: Install consul.hcl
   template:
