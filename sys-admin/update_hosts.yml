@@ -1,4 +1,46 @@
 ---
+- name: Stop all services
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Stop Nomad
+      ansible.builtin.systemd:
+        name: nomad
+        state: stopped
+      ignore_errors: yes
+    - name: Stop Docker
+      ansible.builtin.systemd:
+        name: docker
+        state: stopped
+      ignore_errors: yes
+    - name: Stop Vault
+      ansible.builtin.systemd:
+        name: vault
+        state: stopped
+      ignore_errors: yes
+    - name: Stop Consul
+      ansible.builtin.systemd:
+        name: consul
+        state: stopped
+      ignore_errors: yes
+    - name: Cleanup failed systemd service
+      command:
+        cmd: systemctl reset-failed
+
+- name: Stop Gluster Volume
+  hosts: storage
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Stop Gluster Volume
+      gluster.gluster.gluster_volume:
+        state: stopped
+        name: "{{ gluster_volume_name }}"
+      run_once: true
+
 - name: Update Packages
   hosts: all
   remote_user: root
@@ -8,11 +50,41 @@
     - sys-upgrade
   serial: 6
 
-- name: Reboot
-  hosts: all
+- name: Reboot Storage
+  hosts: storage
   remote_user: root
   become: yes
   become_method: sudo
   tasks:
     - reboot:
-  serial: 1
+
+- name: Start Gluster Volume
+  hosts: storage
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Start Gluster Volume
+      gluster.gluster.gluster_volume:
+        state: started
+        name: "{{ gluster_volume_name }}"
+      run_once: true
+    - name: Trigger re-mount
+      command:
+        cmd: mount -a
+
+- name: Reboot Controller
+  hosts: controller
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - reboot:
+
+- name: Reboot Computing
+  hosts: computing
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - reboot:
