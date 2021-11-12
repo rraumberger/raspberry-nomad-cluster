@@ -1,0 +1,179 @@
+job "haproxy" {
+  datacenters = ["homenet"]
+  type        = "service"
+
+  constraint {
+    distinct_hosts = true
+  }
+
+  constraint {
+    attribute = "${node.class}"
+    value = "controller"
+  }
+
+  group "haproxy" {
+    count = 2
+
+    volume "certificates" {
+      type      = "host"
+      read_only = false
+      source    = "certificates"
+    }
+
+    network {
+      mode = "bridge"
+      port "http" {
+        static = 80
+        to = 8080
+      }
+
+      port "https" {
+        static = 443
+        to = 8443
+      }
+
+      port "haproxy_ui" {
+        static = 1936
+      }
+    }
+
+    service {
+      name = "haproxy"
+      port = "http"
+
+      check {
+        name     = "alive"
+        type     = "tcp"
+        port     = "http"
+        interval = "10s"
+        timeout  = "2s"
+      }
+    }
+
+    service {
+      name = "haproxy"
+      port = "https"
+
+      check {
+        name     = "alive"
+        type     = "tcp"
+        port     = "https"
+        interval = "10s"
+        timeout  = "2s"
+      }
+    }
+
+    task "haproxy" {
+      driver = "docker"
+
+      config {
+        image        = "haproxy:2.4.8"
+        volumes = [
+          "local/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg",
+        ]
+      }
+
+      volume_mount {
+        volume      = "certificates"
+        destination = "/etc/letsencrypt"
+        read_only   = true
+      }
+
+      template {
+        data = <<EOF
+# generated 2021-11-12, Mozilla Guideline v5.6, HAProxy 2.4.8, OpenSSL 1.1.1l, intermediate configuration
+# https://ssl-config.mozilla.org/#server=haproxy&version=2.4.8&config=intermediate&openssl=1.1.1l&guideline=5.6
+global
+    # intermediate configuration
+    ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+    ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+    ssl-default-bind-options prefer-client-ciphers no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+
+    ssl-default-server-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+    ssl-default-server-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+    ssl-default-server-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+
+    # curl https://ssl-config.mozilla.org/ffdhe2048.txt > /path/to/dhparam
+    ssl-dh-param-file /etc/letsencrypt/ffdhe2048.txt
+
+    log 127.0.0.1 local0 debug
+
+defaults
+    log global
+    mode http
+    option httplog
+
+    option dontlognull
+
+    timeout connect 5000
+    timeout check 5000
+    timeout client 30000
+    timeout server 30000
+
+    option forwardfor
+    option http-server-close
+    balance leastconn
+
+frontend stats
+    mode    http
+    bind    *:1936  ssl crt /etc/letsencrypt/live/lab.raumberger.net/fullchain.pem alpn h2,http/1.1
+    redirect scheme https code 301 if !{ ssl_fc }
+
+    # HSTS (63072000 seconds)
+    http-response set-header Strict-Transport-Security max-age=63072000
+
+    stats uri /
+    stats show-legends
+
+frontend homelab
+    mode    http
+    bind    *:8443 ssl crt /etc/letsencrypt/live/lab.raumberger.net/fullchain.pem alpn h2,http/1.1
+    bind    *:8080
+
+    redirect scheme https code 301 if !{ ssl_fc }
+
+    # HSTS (63072000 seconds)
+    http-response set-header Strict-Transport-Security max-age=63072000
+
+    use_backend %[req.hdr(Host),lower]
+
+backend registry.lab.raumberger.net
+    server-template docker-registry 10 _docker-registry._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
+backend mirror.lab.raumberger.net
+    server-template docker-mirror 10 _docker-mirror._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
+backend pihole.lab.raumberger.net
+    server-template pihole 10 _pihole._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
+backend miniflux.lab.raumberger.net
+    server-template miniflux 10 _miniflux._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
+#backend deluge.lab.raumberger.net
+#    server-template deluge 10 _deluge._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
+#backend sonarr.lab.raumberger.net
+#    server-template sonarr 10 _sonarr._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
+#backend radarr.lab.raumberger.net
+#    server-template radarr 10 _radarr._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
+#backend jackett.lab.raumberger.net
+#    server-template jackett 10 _jackett._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
+resolvers consul
+    nameserver controller {{ env "attr.unique.network.ip-address" }}:53
+    accepted_payload_size 8192
+    hold valid 5s
+EOF
+
+        destination = "local/haproxy.cfg"
+      }
+
+      resources {
+        cpu    = 300
+        memory = 256
+      }
+    }
+  }
+}

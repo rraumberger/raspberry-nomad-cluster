@@ -26,6 +26,10 @@ job "pihole" {
         static = 5353
         to = 53
       }
+
+      port "http" {
+        to = 80
+      }
     }
 
     reschedule {
@@ -62,7 +66,7 @@ job "pihole" {
 
       config {
         image = "pihole/pihole:latest"
-        ports = ["dns"]
+        ports = ["dns", "http"]
         force_pull = true
       }
 
@@ -73,16 +77,7 @@ job "pihole" {
 
     service {
       name = "pihole"
-      port = 80
-      connect {
-        sidecar_service {
-          proxy {
-            config {
-              protocol = "http"
-            }
-          }
-        }
-      }
+      port = "http"
     }
   }
 }

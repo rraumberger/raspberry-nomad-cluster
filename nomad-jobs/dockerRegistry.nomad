@@ -72,17 +72,7 @@ EOF
 
     service {
       name = "docker-mirror"
-      port = 5000
-
-      connect {
-        sidecar_service {
-          proxy {
-            config {
-              protocol = "http"
-            }
-          }
-        }
-      }
+      port = "http"
     }
   }
 
@@ -146,17 +136,7 @@ EOF
 
     service {
       name = "docker-registry"
-      port = 5000
-
-      connect {
-        sidecar_service {
-          proxy {
-            config {
-              protocol = "http"
-            }
-          }
-        }
-      }
+      port = "http"
     }
   }
 }
