@@ -1,6 +1,5 @@
 datacenter = "homenet"
 data_dir = "{{ nomad_data_dir }}"
-bind_addr = "{{ inventory_hostname }}"
 disable_update_check = true
 enable_syslog = true
 log_file = "/var/log/nomad/"
