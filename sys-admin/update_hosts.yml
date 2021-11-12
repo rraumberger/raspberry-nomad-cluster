@@ -41,6 +41,18 @@
         name: "{{ gluster_volume_name }}"
       run_once: true
 
+- name: Add custom hosts # Due to the PiHole being stopped too, it add some domains manually
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+        state: present
+      loop: "{{ upgrade_hosts }}"
+
 - name: Update Packages
   hosts: all
   remote_user: root
@@ -88,3 +100,15 @@
   become_method: sudo
   tasks:
     - reboot:
+
+- name: Remove custom hosts
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+        state: absent
+      loop: "{{ upgrade_hosts }}"
