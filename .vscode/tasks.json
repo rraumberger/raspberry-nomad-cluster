@@ -6,57 +6,57 @@
         {
             "label": "Setup Consul",
             "type": "shell",
-            "command": "./setupConsul.sh hosts"
+            "command": "./utils/setupConsul.sh hosts"
         },
         {
             "label": "Setup Nomad",
             "type": "shell",
-            "command": "./setupNomad.sh hosts"
+            "command": "./utils/setupNomad.sh hosts"
         },
         {
             "label": "Setup Vault",
             "type": "shell",
-            "command": "./setupVault.sh hosts"
+            "command": "./utils/setupVault.sh hosts"
         },
         {
             "label": "Setup Full Cluster",
             "type": "shell",
-            "command": "./setupCluster.sh hosts"
+            "command": "./utils/setupCluster.sh hosts"
         },
         {
             "label": "Update Hosts",
             "type": "shell",
-            "command": "./updateHosts.sh hosts"
+            "command": "./utils/updateHosts.sh hosts"
         },
         {
             "label": "Setup Systems",
             "type": "shell",
-            "command": "./setupSys.sh hosts"
+            "command": "./utils/setupSys.sh hosts"
         },
         {
             "label": "Setup Dynatrace",
             "type": "shell",
-            "command": "./setupDynatrace.sh hosts"
+            "command": "./utils/setupDynatrace.sh hosts"
         },
         {
             "label": "Setup Gluster",
             "type": "shell",
-            "command": "./setupGluster.sh hosts"
+            "command": "./utils/setupGluster.sh hosts"
         },
         {
             "label": "Uninstall Cluster",
             "type": "shell",
-            "command": "./uninstallCluster.sh hosts"
+            "command": "./utils/uninstallCluster.sh hosts"
         },
         {
             "label": "[Helper] Restart Service",
             "type": "shell",
-            "command": "./helper_restart_systemd.sh hosts"
+            "command": "./utils/helper_restart_systemd.sh hosts"
         },
         {
             "label": "[Helper] Shutdown",
             "type": "shell",
-            "command": "./helper_shutdown.sh hosts"
+            "command": "./utils/helper_shutdown.sh hosts"
         }
     ]
 }
