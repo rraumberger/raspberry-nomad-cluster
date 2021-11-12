@@ -50,7 +50,7 @@ job "docker-registry" {
       }
 
       env {
-        REGISTRY_HTTP_HOST = "http://mirror.lab.raumberger.net"
+        REGISTRY_HTTP_HOST = "https://mirror.lab.raumberger.net"
         REGISTRY_REDIS_ADDR = "redis.service.consul:6379"
         REGISTRY_REDIS_DB = "0"
         REGISTRY_PROXY_REMOTEURL = "https://registry-1.docker.io"
@@ -115,7 +115,7 @@ EOF
       }
 
       env {
-        REGISTRY_HTTP_HOST = "http://registry.lab.raumberger.net"
+        REGISTRY_HTTP_HOST = "https://registry.lab.raumberger.net"
         REGISTRY_REDIS_ADDR = "redis.service.consul:6379"
         REGISTRY_REDIS_DB = "1"
         REGISTRY_STORAGE_CACHE_BLOBDESCRIPTOR = "redis"
