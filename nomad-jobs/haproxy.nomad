@@ -138,28 +138,37 @@ frontend homelab
     use_backend %[req.hdr(Host),lower]
 
 backend registry.lab.raumberger.net
-    server-template docker-registry 10 _docker-registry._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+    server-template docker-registry 5 _docker-registry._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 backend mirror.lab.raumberger.net
-    server-template docker-mirror 10 _docker-mirror._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+    server-template docker-mirror 5 _docker-mirror._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 backend pihole.lab.raumberger.net
-    server-template pihole 10 _pihole._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+    server-template pihole 5 _pihole._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 backend miniflux.lab.raumberger.net
-    server-template miniflux 10 _miniflux._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+    server-template miniflux 5 _miniflux._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
+backend nomad.lab.raumberger.net
+    server-template nomad 5 _nomad._http.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
+backend vault.lab.raumberger.net
+    server-template vault 5 _vault._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
+backend consul.lab.raumberger.net
+    server-template consul 5 consul.service.consul:8500 resolvers consul resolve-prefer ipv4 check
 
 #backend deluge.lab.raumberger.net
-#    server-template deluge 10 _deluge._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+#    server-template deluge 5 _deluge._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 #backend sonarr.lab.raumberger.net
-#    server-template sonarr 10 _sonarr._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+#    server-template sonarr 5 _sonarr._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 #backend radarr.lab.raumberger.net
-#    server-template radarr 10 _radarr._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+#    server-template radarr 5 _radarr._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 #backend jackett.lab.raumberger.net
-#    server-template jackett 10 _jackett._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+#    server-template jackett 5 _jackett._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 resolvers consul
     nameserver controller {{ env "attr.unique.network.ip-address" }}:53
