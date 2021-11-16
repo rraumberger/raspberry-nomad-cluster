@@ -1,7 +1,38 @@
 ---
-allowed_ssh_user: user
-nomad_node_class: control-plane
-is_nomad_server: true
-is_nomad_client: true
-is_consul_client: true
-is_consul_server: true
+is_nomad_server: false
+is_nomad_client: false
+is_consul_client: false
+is_consul_server: false
+
+# GlusterFS config
+gluster_brick: /path/to/brick
+gluster_volume_mount: /path/to/volume/mount # The path on the Gluster hosts
+gluster_volume_name: gluster-volume
+gluster_mount_path: /path/to/gluster/mount # The path on the Gluster clients
+gluster_node_ips: "{{ groups['storage'] | map('extract', hostvars, ['ansible_eth0', 'ipv4', 'address']) }}" # List of IPs
+gluster_master: "{{ gluster_node_ips[0] }}" # Primary node used to initially fetch the GlusterFS volume info
+gluster_backup_nodes: "{{ gluster_node_ips[1:] | join(':') }}" # Fallback nodes in case the primary is not reachable
+
+delete_data: false # Flag to delete data in case of uninstallment
+consul_data_dir: "/opt/consul"
+nomad_data_dir: "/opt/nomad"
+nomad_shared_dir: "{{ gluster_mount_path }}/nomad/shared"
+nomad_vault_token: "<vault token>"
+nomad_vault_address: "http://127.0.0.1:8200"
+
+consul_dnsmasq: true
+consul_resolv_nameservers:
+  - "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}" # Can't use 127.0.0.1 here since it's removed by Docker within a container
+
+docker_mirror: "https://<docker mirror address>"
+
+vault_version: "1.8.5"
+vault_version_hash: "a1a57c51505cce0857c32a159ed193dd330e43bee1f3340d2143993c64cf0645"
+nomad_version: "1.1.6"
+nomad_version_hash: "9e8a8171ab06caceca84bd8bd8f96cc0d7649cd504ea99d93bf13070743f8fd5"
+consul_version: "1.10.3"
+consul_version_hash: "a6caf82433c48a8938bd308a8593c7336e8a0a9f841c7f1426ea7903b73cc8a1"
+
+consul_dnsmasq_dns_server: "<dns server IP e.g. PiHole>#5353"
+
+restart_docker: false

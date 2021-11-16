@@ -1,4 +1,4 @@
-# raspberry-nomad-cluster
+# Raspberry PI Nomad Homelab
 
 Ansible config to setup my Raspberry PI cluster.
 
@@ -13,12 +13,12 @@ Shared Storage: GlusterFS
 - Dynatrace Ansible Collection (available via Dynatrace tenant)
 - Gluster Ansible Collection: ansible-galaxy collection install gluster.gluster
 
-### Initial Raspberry Setup
+### Initial Raspberry Bootstrap Setup
 
-keyboard: uk
-username: rpi
-TZ: Europe/Vienna
-locale: en-gb
+- keyboard: uk
+- username: rpi
+- TZ: Europe/Vienna
+- locale: en-gb
 
 ## Manual Setup
 
@@ -53,11 +53,13 @@ GRANT ALL PRIVILEGES ON DATABASE miniflux TO miniflux;
 
 One-time account creation is necessary (because I was too lazy for automation)
 
+```
 sudo docker run --rm -it \
 --name certbot \
 -v "<hostpath>:/etc/letsencrypt" \
 -v "<hostpath>:/var/lib/letsencrypt" \
 certbot/dns-route53 register -m "<email>" --agree-tos
+```
 
 Create symbolic link in let's encrypt folder so HAProxy can properly resolve the key file
 https://github.com/haproxy/haproxy/issues/221#issuecomment-869538325
@@ -75,7 +77,7 @@ https://ssl-config.mozilla.org/ffdhe2048.txt
 
 ## How to run
 
-
+TODO
 
 ## TODO
 

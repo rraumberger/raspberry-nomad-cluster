@@ -1,0 +1,4 @@
+---
+nomad_node_class: storage
+is_nomad_client: true
+is_consul_client: true

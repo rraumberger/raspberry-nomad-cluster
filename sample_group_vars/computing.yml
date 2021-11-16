@@ -1,0 +1,7 @@
+---
+nomad_node_class: computing
+is_nomad_client: true
+is_consul_client: true
+
+nomad_host_volumes:  # List of folders to create on the nodes and add as Nomad host volume
+  - { volumeKey: sample, path: "{{ nomad_shared_dir }}/sample" }
