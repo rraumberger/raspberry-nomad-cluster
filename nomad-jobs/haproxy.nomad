@@ -138,25 +138,28 @@ frontend homelab
     use_backend %[req.hdr(Host),lower]
 
 backend registry.lab.raumberger.net
-    server-template docker-registry 5 _docker-registry._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+    server-template srv 5 _docker-registry._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 backend mirror.lab.raumberger.net
-    server-template docker-mirror 5 _docker-mirror._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+    server-template srv 5 _docker-mirror._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 backend pihole.lab.raumberger.net
-    server-template pihole 5 _pihole._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+    server-template srv 5 _pihole._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 backend miniflux.lab.raumberger.net
-    server-template miniflux 5 _miniflux._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+    server-template srv 5 _miniflux._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 backend nomad.lab.raumberger.net
-    server-template nomad 5 _nomad._http.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+    server-template srv 5 _nomad._http.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 backend vault.lab.raumberger.net
-    server-template vault 5 _vault._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+    server-template srv 5 _vault._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 backend consul.lab.raumberger.net
     server-template consul 5 consul.service.consul:8500 resolvers consul resolve-prefer ipv4 check
+
+backend devtools.lab.raumberger.net
+    server-template srv 5 _cyberchef._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 #backend deluge.lab.raumberger.net
 #    server-template deluge 5 _deluge._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check

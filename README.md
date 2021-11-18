@@ -2,10 +2,10 @@
 
 Ansible config to setup my Raspberry PI cluster.
 
-Service Orchestration: Hashicorp Nomad
-Service Discovery: Hashicorp Consul
-Secret Store: Hashicorp Vault
-Shared Storage: GlusterFS
+- Service Orchestration: Hashicorp Nomad
+- Service Discovery: Hashicorp Consul
+- Secret Store: Hashicorp Vault
+- Shared Storage: GlusterFS
 
 ## Prerequisites
 
@@ -81,6 +81,7 @@ TODO
 
 ## TODO
 
+- [ ] Migrate to Podman
 - [ ] Signal HAProxy after Let's Encrypt cert rotation. (HAProxy does not automatically reload changed certs from disk)
 - [ ] Consul mTLS with Vault => https://learn.hashicorp.com/tutorials/consul/vault-pki-consul-secure-tls?in=onboarding/hcp-vault-week-6
 - [ ] Nomad mTLS with Vault => https://learn.hashicorp.com/tutorials/nomad/vault-pki-nomad?in=onboarding/hcp-vault-week-6
