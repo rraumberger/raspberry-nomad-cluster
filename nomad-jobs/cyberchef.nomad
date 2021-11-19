@@ -21,7 +21,7 @@ job "cyberchef" {
       driver = "docker"
 
       config {
-        image = "registry.lab.raumberger.net/cyberchef:v9.32.3"
+        image = "registry.lab.raumberger.net/cyberchef:9.32.3"
       }
     }
 

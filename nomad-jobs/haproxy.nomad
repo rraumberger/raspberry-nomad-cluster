@@ -161,6 +161,9 @@ backend consul.lab.raumberger.net
 backend devtools.lab.raumberger.net
     server-template srv 5 _cyberchef._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
+backend concourse.lab.raumberger.net
+    server-template srv 5 _concourse._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
 #backend deluge.lab.raumberger.net
 #    server-template deluge 5 _deluge._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 

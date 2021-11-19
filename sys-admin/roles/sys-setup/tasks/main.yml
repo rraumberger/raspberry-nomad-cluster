@@ -86,3 +86,8 @@
     group: root
     owner: root
     mode: 0644
+
+- name: Create Garden cgroup directory # This is a workaround of a Concourse bug. Creating this directory manually lets the Concourse worker do its thing...
+  file:
+    path: /sys/fs/cgroup/garden
+    state: directory

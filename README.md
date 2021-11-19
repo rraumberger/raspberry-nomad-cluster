@@ -40,6 +40,7 @@ e.g. https://www.vaultproject.io/docs/secrets/aws
 
 Create database (and store vault credentials) for
 - Miniflux
+- Concourse
 
 e.g.
 ```
