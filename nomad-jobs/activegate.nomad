@@ -11,8 +11,24 @@ job "dynatrace-activegate" {
     value = "controller"
   }
 
+  reschedule {
+    delay          = "1m"
+    delay_function = "constant"
+    unlimited      = true
+  }
+
+  update {
+    max_parallel     = 1
+    health_check     = "task_states"
+  }
+
   group "activegate" {
     count = 1
+
+    restart {
+      attempts = 5
+      interval = "2m"
+    }
 
     network {
       mode = "bridge"
@@ -41,9 +57,15 @@ job "dynatrace-activegate" {
         DYNATRACE_AG_JVM_ARGS = "-Xms1024M -Xmx2663M"
       }
 
+      vault {
+        policies = ["homelab"]
+      }
+
       template {
         data = <<EOH
-AG_VERSION="{{key "activegate"}}"
+{{with secret "concourse/data/main/dynatrace_activegate_version"}}
+AG_VERSION="{{.Data.data.value}}"
+{{end}}
 EOH
         destination = "local/version.env"
         env         = true
