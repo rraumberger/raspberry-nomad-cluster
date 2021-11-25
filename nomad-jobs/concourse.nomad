@@ -35,6 +35,9 @@ job "concourse" {
         CONCOURSE_TSA_HOST_KEY="/etc/keys/tsa_host_key"
         CONCOURSE_TSA_AUTHORIZED_KEYS="/etc/keys/authorized_worker_keys"
         CONCOURSE_EXTERNAL_URL="https://concourse.lab.raumberger.net"
+        CONCOURSE_VAULT_URL="https://vault.lab.raumberger.net"
+        CONCOURSE_VAULT_CLIENT_TOKEN="${VAULT_TOKEN}"
+        CONCOURSE_VAULT_PATH_PREFIX="/concourse"
       }
 
       vault {
@@ -131,7 +134,7 @@ EOH
       }
 
       env {
-        #CONCOURSE_RUNTIME="containerd"
+        CONCOURSE_RUNTIME="containerd"
         CONCOURSE_WORK_DIR="/worker-state"
         CONCOURSE_WORKER_WORK_DIR="/worker-state"
         CONCOURSE_TSA_HOST="concourse-tsa.service.consul:2222"
