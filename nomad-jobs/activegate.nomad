@@ -11,6 +11,11 @@ job "dynatrace-activegate" {
     value = "controller"
   }
 
+  constraint {
+      attribute = "${attr.unique.network.ip-address}"
+      value = "192.168.42.249"
+  }
+
   reschedule {
     delay          = "1m"
     delay_function = "constant"
