@@ -9,6 +9,6 @@
   ansible.posix.mount:
     src: "{{ gluster_master }}:{{ gluster_volume_mount }}"
     path: "{{ gluster_mount_path }}"
-    opts: defaults,_netdev,backup-volfile-servers={{ gluster_backup_nodes }}
+    opts: "defaults,_netdev,log-level=ERROR,backup-volfile-servers={{ gluster_backup_nodes }}"
     state: mounted
     fstype: glusterfs
