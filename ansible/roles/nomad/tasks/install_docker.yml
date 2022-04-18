@@ -6,6 +6,11 @@
     state: latest
     update_cache: yes
 
+- name: Ensure Docker directory
+  ansible.builtin.file:
+    path: /etc/docker
+    state: directory
+
 - name: Install daemon.json
   template:
     src: daemon.json
