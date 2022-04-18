@@ -66,7 +66,7 @@
     state: reloaded
 
 - name: Set kernel boot options
-  copy:
+  template:
     src: cmdline.txt
     dest: /boot/cmdline.txt
     owner: root
