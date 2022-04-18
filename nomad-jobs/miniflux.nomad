@@ -21,6 +21,12 @@ job "miniflux" {
       }
     }
 
+    reschedule {
+      delay          = "30s"
+      delay_function = "constant"
+      unlimited      = true
+    }
+
     task "miniflux" {
       driver = "docker"
 
