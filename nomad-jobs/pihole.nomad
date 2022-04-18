@@ -14,7 +14,7 @@ job "pihole" {
 
   constraint {
       attribute = "${attr.unique.network.ip-address}"
-      value = "192.168.178.37" # Since it's DNS, we have to force the same IP
+      value = "192.168.42.247" # Since it's DNS, we have to force the same IP
   }
 
   group "main" {
