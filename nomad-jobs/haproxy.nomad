@@ -34,11 +34,12 @@ job "haproxy" {
 
       port "haproxy_ui" {
         static = 1936
+        to = 1936
       }
     }
 
     service {
-      name = "haproxy"
+      name = "haproxy-http"
       port = "http"
 
       check {
@@ -51,7 +52,7 @@ job "haproxy" {
     }
 
     service {
-      name = "haproxy"
+      name = "haproxy-https"
       port = "https"
 
       check {
@@ -63,11 +64,16 @@ job "haproxy" {
       }
     }
 
+    service {
+      name = "haproxy-ui"
+      port = "haproxy_ui"
+    }
+
     task "haproxy" {
       driver = "docker"
 
       config {
-        image        = "haproxy:2.4.8"
+        image        = "haproxy:latest"
         volumes = [
           "local/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg",
         ]
