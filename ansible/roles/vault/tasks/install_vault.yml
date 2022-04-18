@@ -105,3 +105,18 @@
     name: vault
     state: restarted
     enabled: yes
+
+- name: Ensure Vault is in a running state
+  service:
+    name: vault
+    state: started
+  register: vaultDetails
+  until: vaultDetails.status.ActiveState == "active"
+  retries: 15
+  delay: 20
+
+- name: Unseal Vault
+  environment:
+    VAULT_ADDR: http://127.0.0.1:8200
+    VAULT_UNSEAL_KEY:  "{{ vault_unseal_key }}"
+  shell: vault operator unseal ${VAULT_UNSEAL_KEY}
