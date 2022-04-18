@@ -32,6 +32,16 @@ job "haproxy" {
         to = 8443
       }
 
+      port "http-public" {
+        static = 8081
+        to = 8081
+      }
+
+      port "https-public" {
+        static = 8444
+        to = 8444
+      }
+
       port "haproxy_ui" {
         static = 1936
         to = 1936
@@ -136,12 +146,30 @@ frontend homelab
     bind    *:8443 ssl crt /etc/letsencrypt/live/lab.raumberger.net/fullchain.pem alpn h2,http/1.1
     bind    *:8080
 
+    acl network_allowed src 192.168.0.0/16
+    acl network_allowed src 10.0.0.0/8
+    acl network_allowed src 172.16.0.0/16
+
+    http-request deny if !network_allowed
+
     redirect scheme https code 301 if !{ ssl_fc }
 
     # HSTS (63072000 seconds)
     http-response set-header Strict-Transport-Security max-age=63072000
 
     use_backend %[req.hdr(Host),lower]
+
+frontend public
+    mode    http
+    bind    *:8444 ssl crt /etc/letsencrypt/live/raumberger.dev/fullchain.pem alpn h2,http/1.1
+    bind    *:8081
+
+    redirect scheme https code 301 if !{ ssl_fc }
+
+    # HSTS (63072000 seconds)
+    http-response set-header Strict-Transport-Security max-age=63072000
+
+    use_backend raumberger.dev
 
 backend registry.lab.raumberger.net
     server-template srv 5 _docker-registry._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
@@ -169,6 +197,9 @@ backend devtools.lab.raumberger.net
 
 backend concourse.lab.raumberger.net
     server-template srv 5 _concourse._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
+backend raumberger.dev
+    server-template srv 5 _raumbergerDev._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 #backend deluge.lab.raumberger.net
 #    server-template deluge 5 _deluge._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
