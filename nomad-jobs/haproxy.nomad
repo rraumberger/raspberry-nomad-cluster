@@ -161,7 +161,7 @@ frontend homelab
 
 frontend public
     mode    http
-    bind    *:8444 ssl crt /etc/letsencrypt/live/raumberger.dev/fullchain.pem alpn h2,http/1.1
+    bind    *:8444 ssl crt /etc/letsencrypt/live/lab.raumberger.net/fullchain.pem alpn h2,http/1.1
     bind    *:8081
 
     redirect scheme https code 301 if !{ ssl_fc }
