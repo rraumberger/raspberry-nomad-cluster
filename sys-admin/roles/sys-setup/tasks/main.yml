@@ -91,3 +91,12 @@
   file:
     path: /sys/fs/cgroup/garden
     state: directory
+- name: Publish hostname to dhcp server
+  lineinfile: dest=/etc/dhcpcd.conf regexp='^#?hostname' line='hostname'
+
+- name: Restart dhcpd
+  ansible.builtin.systemd:
+    name: dhcpcd
+    state: restarted
+    enabled: yes
+
