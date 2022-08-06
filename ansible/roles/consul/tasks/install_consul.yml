@@ -99,13 +99,6 @@
     path: "/etc/consul.d"
     state: "directory"
 
-- name: Create /var/log/consul
-  file:
-    path: "/var/log/consul"
-    state: "directory"
-    group: consul
-    owner: consul
-
 - name: Install consul.hcl
   template:
     src: consul.hcl

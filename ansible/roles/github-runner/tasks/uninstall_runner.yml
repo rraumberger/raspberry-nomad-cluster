@@ -1,0 +1,31 @@
+---
+
+- name: Stop Runner service
+  ignore_errors: yes
+  ansible.builtin.systemd:
+    name: "{{ systemd_service }}"
+    state: stopped
+    enabled: no
+
+- name: Configure Runner
+  ignore_errors: yes
+  ansible.builtin.command: "{{ github_runner_install_location }}/config.sh remove"
+
+- name: Remove Systemd service
+  file:
+    path: "{{ systemd_location }}"
+    state: absent
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Remove Runner work directory
+  file:
+    path: "{{ github_runner_data_dir }}"
+    state: "absent"
+
+- name: Remove Runner install directory
+  file:
+    path: "{{ github_runner_install_location }}"
+    state: "absent"

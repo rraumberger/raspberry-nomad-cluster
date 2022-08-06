@@ -1,0 +1,13 @@
+---
+
+- name: Install Github Runner
+  hosts: computing
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+    - github-runner
+  vars:
+    install_state: latest
+    version: "{{ github_runner_version }}"
+    shaHash: "{{ github_runner_version_hash }}"

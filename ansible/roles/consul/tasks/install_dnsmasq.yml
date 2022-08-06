@@ -1,4 +1,11 @@
 ---
+- name: Disable systemd-resolved.service when installed
+  ignore_errors: yes
+  ansible.builtin.systemd:
+    name: systemd-resolved
+    state: stopped
+    enabled: false
+
 - name: Install dnsmasq
   community.general.pacman:
     name: ['extra/dnsmasq']

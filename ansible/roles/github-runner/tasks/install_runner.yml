@@ -1,0 +1,100 @@
+---
+
+- name: Fetch installed version
+  ansible.builtin.command: '{{ install_location }}/config.sh --version'
+  register: installed_version_out
+  failed_when: ( installed_version_out.rc not in [ 0, 1, 2 ] )
+
+- name: DEBUG Installed version
+  ansible.builtin.debug:
+    msg: "{{ installed_version_out.stdout }}"
+
+- name: Set requires installation fact
+  set_fact:
+    requires_runner_installation: "{{ installed_version_out.rc != 0 or version not in installed_version_out.stdout}}"
+    installed_version: "{{ installed_version_out.stdout }}"
+
+- name: DEBUG Installation required?
+  ansible.builtin.debug:
+    msg: "{{ requires_runner_installation }}"
+
+- name: Stop Runner service
+  when: requires_runner_installation
+  ignore_errors: yes
+  ansible.builtin.systemd:
+    name: "{{ systemd_service }}"
+    state: stopped
+
+- name: Delete previous installation
+  when: requires_runner_installation
+  file:
+    path: "{{ install_location }}"
+    state: "absent"
+
+- name: Create install location
+  file:
+    path: "{{ install_location }}"
+    state: "directory"
+
+- name: Download Github Runner
+  when: requires_runner_installation
+  get_url:
+    url: "{{ download_url }}"
+    dest: "{{ download_destination }}"
+    checksum: "sha256:{{ shaHash }}"
+
+- name: Add Github group
+  ansible.builtin.group:
+    name: "{{ group }}"
+    system: true
+    state: present
+
+- name: Add Github user
+  ansible.builtin.user:
+    name: "{{ user }}"
+    group: "{{ group }}"
+    system: true
+    state: present
+
+- name: Unarchive Runner
+  when: requires_runner_installation
+  ansible.builtin.unarchive:
+    src: "{{ download_destination }}"
+    dest: "{{ install_location }}"
+    group: "{{ group }}"
+    owner: "{{ user }}"
+
+- name: Remove downloaded archive
+  file:
+    path: "{{ download_destination }}"
+    state: absent
+
+- name: Create Runner work directory
+  file:
+    path: "{{ github_runner_data_dir }}"
+    state: "directory"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+
+- name: Configure Runner
+  when: requires_runner_installation
+  become_user: "{{ user }}"
+  ansible.builtin.command: "{{ install_location }}/config.sh --unattended --url {{ github_runner_repo_url }} --token '{{ github_runner_access_token }}' --labels '{{ github_runner_labels }}' --work '{{ work_dir_to_root }}{{ github_runner_data_dir }}' --disableupdate"
+
+- name: Install Runner Service
+  template:
+    src: systemd.txt
+    dest: "{{ systemd_location }}"
+    group: "{{ group }}"
+    owner: "{{ user }}"
+    mode: 0644
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Start and Enable Runner service
+  ansible.builtin.systemd:
+    name: "{{ systemd_service }}"
+    state: restarted
+    enabled: yes

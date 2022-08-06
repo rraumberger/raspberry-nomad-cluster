@@ -1,0 +1,15 @@
+[Unit]
+Description="GitHub Runner"
+Documentation=https://github.com/actions/runner
+After=network.target
+
+[Service]
+ExecStart={{ install_location }}/bin/runsvc.sh
+User={{ user }}
+WorkingDirectory={{ install_location }}
+KillMode=process
+KillSignal=SIGTERM
+TimeoutStopSec=5min
+
+[Install]
+WantedBy=multi-user.target

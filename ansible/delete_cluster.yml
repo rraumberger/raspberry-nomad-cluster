@@ -1,5 +1,15 @@
 ---
 
+- name: Uninstall Github Runner
+  hosts: computing
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+    - github-runner
+  vars:
+    install_state: absent
+
 - name: Uninstall Nomad
   hosts: all
   remote_user: root
