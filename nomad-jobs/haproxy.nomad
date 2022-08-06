@@ -20,6 +20,12 @@ job "haproxy" {
       source    = "certificates"
     }
 
+    reschedule {
+      delay          = "60s"
+      delay_function = "constant"
+      unlimited      = true
+    }
+
     network {
       mode = "bridge"
       port "http" {
@@ -45,6 +51,16 @@ job "haproxy" {
       port "haproxy_ui" {
         static = 1936
         to = 1936
+      }
+
+      port "mqtt" {
+        static = 1883
+        to = 1883
+      }
+
+      port "mqtt-websocket" {
+        static = 9001
+        to = 9001
       }
     }
 
@@ -170,6 +186,20 @@ frontend public
     http-response set-header Strict-Transport-Security max-age=63072000
 
     use_backend raumberger.dev
+
+# Based on https://github.com/lelylan/haproxy-mqtt/blob/master/haproxy.cfg
+listen mqtt
+  bind *:1883
+  bind *:9001
+  bind *:8883 ssl crt /etc/letsencrypt/live/lab.raumberger.net/fullchain.pem
+  mode tcp
+  #Use this to avoid the connection loss when client subscribed for a topic and its idle for sometime
+  option clitcpka # For TCP keep-alive
+  timeout client 3h #By default TCP keep-alive interval is 2hours in OS kernal, 'cat /proc/sys/net/ipv4/tcp_keepalive_time'
+  timeout server 3h #By default TCP keep-alive interval is 2hours in OS kernal
+  option tcplog
+  balance leastconn
+  server-template srv 5 _mosquitto._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 backend registry.lab.raumberger.net
     server-template srv 5 _docker-registry._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
