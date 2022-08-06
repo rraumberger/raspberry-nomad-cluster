@@ -27,15 +27,7 @@
 # Log sftp level file access (read/write/etc.) that would not be easily logged otherwise.
 - lineinfile: dest=/etc/ssh/sshd_config regexp='^Subsystem\s+sftp' line='Subsystem sftp internal-sftp -f AUTHPRIV -l INFO'
 
-# Root login is not allowed for auditing reasons. This is because it's difficult to track which process belongs to which root user
-# On Linux, user sessions are tracking using a kernel-side session id, however, this session id is not recorded by OpenSSH.
-# Additionally, only tools such as systemd and auditd record the process session id.
-# On other OSes, the user session id is not necessarily recorded at all kernel-side.
-# Using regular users in combination with /bin/su or /usr/bin/sudo ensure a clear audit track.
 - lineinfile: dest=/etc/ssh/sshd_config regexp='^PermitRootLogin' line='PermitRootLogin No'
-
-# Use kernel sandbox mechanisms where possible in unprivileged processes
-# Systrace on OpenBSD, Seccomp on Linux, seatbelt on MacOSX/Darwin, rlimit elsewhere.
 - lineinfile: dest=/etc/ssh/sshd_config regexp='^UsePrivilegeSeparation' line='UsePrivilegeSeparation sandbox'
 
 # Only allow specific users to login remotely (may be more suitable to change this to AllowGroups).
@@ -65,6 +57,11 @@
     name: sshd
     state: reloaded
 
+- name: Find root partition id
+  shell: 'cat /etc/fstab | grep "PARTUUID" | grep "\-02" | cut -f 1 -d " " | tr -d "\n"'
+  register: root_partition
+  failed_when: ( root_partition.rc not in [ 0 ] )
+
 - name: Set kernel boot options
   template:
     src: cmdline.txt
@@ -91,6 +88,25 @@
   file:
     path: /sys/fs/cgroup/garden
     state: directory
+
+#- name: Ensure fstab uses noatime # Reduce load on sdcard
+#  ansible.posix.mount:
+#    path: "{{ item.mount }}"
+#    src: "{{ item.device }}"
+#    fstype: "{{ item.fstype }}"
+#    opts: "{{ item.options }},noatime"
+#    state: present
+#  loop: "{{ ansible_mounts }}"
+#  when: item.device.find("mmcblk") >= 0 and item.options.find("noatime") == -1
+
+#- name: tmpfs /var/log
+#  ansible.posix.mount:
+#    path: "/var/log"
+#    src: "tmpfs"
+#    fstype: "tmpfs"
+#    opts: "defaults,noatime,nosuid,mode=0755,size=100m"
+#    state: present
+
 - name: Publish hostname to dhcp server
   lineinfile: dest=/etc/dhcpcd.conf regexp='^#?hostname' line='hostname'
 
