@@ -41,7 +41,7 @@ job "certbot-init" {
       }
 
       config {
-        image = "certbot/dns-route53:arm64v8-v1.21.0"
+        image = "certbot/dns-route53:arm64v8-v1.29.0"
         args = ["certonly", "--dns-route53", "-d ${LAB_DOMAIN}", "-d *.${LAB_DOMAIN}", "--post-hook", "find /etc/letsencrypt/archive -regex \".*\\.pem$\" | while read file; do chmod 644 \"$file\"; done"]
       }
 
