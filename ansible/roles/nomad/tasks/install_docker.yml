@@ -2,7 +2,7 @@
 
 - name: Install Docker
   community.general.pacman:
-    name: ['docker', 'cni-plugins']
+    name: ['docker', 'cni-plugins', 'community/docker-buildx']
     state: latest
     update_cache: yes
 

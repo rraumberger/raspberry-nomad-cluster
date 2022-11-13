@@ -1,7 +1,7 @@
 ---
 
 - name: Fetch installed version
-  ansible.builtin.command: "/usr/bin/nomad version"
+  ansible.builtin.command: "{{ nomad_binary }} version"
   register: installed_version_out
   failed_when: ( installed_version_out.rc not in [ 0, 1, 2 ] )
 
@@ -52,15 +52,21 @@
     state: absent
   run_once: true
 
+- name: Add Nomad group
+  ansible.builtin.group:
+    name: "{{ group }}"
+    system: true
+    state: present
+
 - name: Copy Nomad binary
   when: requires_nomad_installation
   copy:
     src: "/opt/nomadInstall/nomad"
-    dest: "/usr/bin/nomad"
-    group: root
+    dest: "{{ nomad_binary }}"
+    group: "{{ group }}"
     owner: root
     remote_src: yes
-    mode: 0700
+    mode: 0755
 
 - name: Create data directory
   file:

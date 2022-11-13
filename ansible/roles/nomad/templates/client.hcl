@@ -26,11 +26,6 @@ client {
 {% endfor %}
 }
 
-vault {
-  enabled = true
-  address = "http://active.vault.service.consul:8200"
-}
-
 plugin "docker" {
   config {
     allow_privileged = true

@@ -1,6 +1,6 @@
 server = true
-bootstrap_expect = {{ hostvars | map('extract', hostvars) | selectattr('is_consul_server') | length }}
+bootstrap_expect = {{ expected_cluster_quorum }}
 
 ui_config {
-  enabled = true
+  enabled = {{ ui_enabled|lower }}
 }

@@ -1,0 +1,3 @@
+---
+nomad_binary: /usr/bin/nomad
+group: nomad
