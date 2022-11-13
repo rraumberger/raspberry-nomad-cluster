@@ -14,6 +14,11 @@ job "telegraf" {
   group "telegraf" {
     count = 1
 
+    restart {
+      attempts = 5
+      interval = "15m"
+    }
+
     reschedule {
       delay          = "30s"
       delay_function = "constant"
@@ -24,7 +29,8 @@ job "telegraf" {
       driver = "docker"
 
       config {
-        image = "telegraf:1.23.3"
+        image = "telegraf:1.23.4"
+        image_pull_timeout = "15m"
         volumes = [
           "local/telegraf.conf:/etc/telegraf/telegraf.conf:ro",
         ]
