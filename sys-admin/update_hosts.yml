@@ -9,7 +9,7 @@
       ansible.builtin.systemd:
         name: nomad
         state: stopped
-        enabled: true
+        enabled: false
       ignore_errors: yes
     - name: Stop Docker
       ansible.builtin.systemd:
@@ -21,13 +21,13 @@
       ansible.builtin.systemd:
         name: vault
         state: stopped
-        enabled: true
+        enabled: false
       ignore_errors: yes
     - name: Stop Consul
       ansible.builtin.systemd:
         name: consul
         state: stopped
-        enabled: true
+        enabled: false
       ignore_errors: yes
     - name: Cleanup failed systemd service
       command:
@@ -97,12 +97,24 @@
   tasks:
     - reboot:
 
-- name: Ensure Consul is in a running state
-  hosts: controller
+- name: Reboot Computing
+  hosts: computing
   remote_user: root
   become: yes
   become_method: sudo
   tasks:
+    - reboot:
+
+- name: Ensure Consul is in a running state
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - ansible.builtin.systemd:
+        name: consul
+        state: started
+        enabled: true
     - service:
         name: consul
         state: started
@@ -117,6 +129,10 @@
   become: yes
   become_method: sudo
   tasks:
+    - ansible.builtin.systemd:
+        name: vault
+        state: started
+        enabled: true
     - service:
         name: vault
         state: started
@@ -137,13 +153,16 @@
         VAULT_UNSEAL_KEY:  "{{ vault_unseal_key }}"
       shell: vault operator unseal ${VAULT_UNSEAL_KEY}
 
-- name: Reboot Computing
-  hosts: computing
+- name: Restart Nomad
+  hosts: all
   remote_user: root
   become: yes
   become_method: sudo
   tasks:
-    - reboot:
+    - ansible.builtin.systemd:
+        name: nomad
+        state: started
+        enabled: true
 
 - name: Remove custom hosts
   hosts: all
