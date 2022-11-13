@@ -9,7 +9,7 @@
 
 - name: Configure Runner
   ignore_errors: yes
-  ansible.builtin.command: "{{ github_runner_install_location }}/config.sh remove"
+  ansible.builtin.command: "{{ github_runner_install_location }}/config.sh remove --token '{{ github_runner_access_token }}'"
 
 - name: Remove Systemd service
   file:
@@ -29,3 +29,16 @@
   file:
     path: "{{ github_runner_install_location }}"
     state: "absent"
+
+- name: Remove Github group
+  ansible.builtin.group:
+    name: "{{ group }}"
+    system: true
+    state: absent
+
+- name: Remove Github user
+  ansible.builtin.user:
+    name: "{{ user }}"
+    group: "{{ group }}"
+    system: true
+    state: absent

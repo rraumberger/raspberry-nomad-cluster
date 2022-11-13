@@ -1,7 +1,23 @@
 ---
 
+- name: Add Github group
+  ansible.builtin.group:
+    name: "{{ group }}"
+    system: true
+    state: present
+
+- name: Add Github user
+  ansible.builtin.user:
+    name: "{{ user }}"
+    group: "{{ group }}"
+    groups: "{{ github_user_additional_groups | default('') }}"
+    append: true
+    system: true
+    state: present
+
 - name: Fetch installed version
-  ansible.builtin.command: '{{ install_location }}/config.sh --version'
+  become_user: "{{ user }}"
+  ansible.builtin.command: '{{ install_location }}/config.sh --version || echo "not installed"'
   register: installed_version_out
   failed_when: ( installed_version_out.rc not in [ 0, 1, 2 ] )
 
@@ -43,23 +59,11 @@
     dest: "{{ download_destination }}"
     checksum: "sha256:{{ shaHash }}"
 
-- name: Add Github group
-  ansible.builtin.group:
-    name: "{{ group }}"
-    system: true
-    state: present
-
-- name: Add Github user
-  ansible.builtin.user:
-    name: "{{ user }}"
-    group: "{{ group }}"
-    system: true
-    state: present
-
 - name: Unarchive Runner
   when: requires_runner_installation
   ansible.builtin.unarchive:
     src: "{{ download_destination }}"
+    remote_src: true
     dest: "{{ install_location }}"
     group: "{{ group }}"
     owner: "{{ user }}"
@@ -76,10 +80,21 @@
     owner: "{{ user }}"
     group: "{{ group }}"
 
+- name: Fetching Github Runner Registration Token
+  when: requires_runner_installation
+  become_user: "{{ user }}"
+  ansible.builtin.shell: |
+    curl -X POST --fail --silent -H 'Accept: application/vnd.github+json' -H 'Authorization: token {{ github_org_api_token }}' https://api.github.com/orgs/{{ github_org }}/actions/runners/registration-token \
+    | grep token \
+    | cut -d '"' -f 4 \
+    | tr -d '\n'
+  register: access_token_out
+  failed_when: "( access_token_out.rc not in [ 0 ] )"
+
 - name: Configure Runner
   when: requires_runner_installation
   become_user: "{{ user }}"
-  ansible.builtin.command: "{{ install_location }}/config.sh --unattended --url {{ github_runner_repo_url }} --token '{{ github_runner_access_token }}' --labels '{{ github_runner_labels }}' --work '{{ work_dir_to_root }}{{ github_runner_data_dir }}' --disableupdate"
+  ansible.builtin.command: "{{ install_location }}/config.sh --unattended --replace --url {{ github_runner_repo_url }} --token '{{ access_token_out.stdout }}' --labels '{{ github_runner_labels }}' --work '{{ work_dir_to_root }}{{ github_runner_data_dir }}' --disableupdate"
 
 - name: Install Runner Service
   template:

@@ -3,3 +3,4 @@
 - import_playbook: setup_consul.yml
 - import_playbook: setup_vault.yml
 - import_playbook: setup_nomad.yml
+- import_playbook: setup_github_runner.yml
