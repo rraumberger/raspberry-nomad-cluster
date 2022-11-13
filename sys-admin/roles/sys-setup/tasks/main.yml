@@ -57,18 +57,13 @@
     name: sshd
     state: reloaded
 
-- name: Find root partition id
-  shell: 'cat /etc/fstab | grep "PARTUUID" | grep "\-02" | cut -f 1 -d " " | tr -d "\n"'
-  register: root_partition
-  failed_when: ( root_partition.rc not in [ 0 ] )
-
-- name: Set kernel boot options
-  template:
-    src: cmdline.txt
-    dest: /boot/cmdline.txt
-    owner: root
-    group: root
-    mode: 0755
+#- name: Set kernel boot options
+#  template:
+#    src: cmdline.txt
+#    dest: /boot/cmdline.txt
+#    owner: root
+#    group: root
+#    mode: 0755
 
 - name: Disable Wifi module
   lineinfile: dest=/boot/config.txt line='dtoverlay=disable-wifi'
@@ -84,31 +79,21 @@
     owner: root
     mode: 0644
 
-- name: Create Garden cgroup directory # This is a workaround of a Concourse bug. Creating this directory manually lets the Concourse worker do its thing...
-  file:
-    path: /sys/fs/cgroup/garden
-    state: directory
-
-#- name: Ensure fstab uses noatime # Reduce load on sdcard
-#  ansible.posix.mount:
-#    path: "{{ item.mount }}"
-#    src: "{{ item.device }}"
-#    fstype: "{{ item.fstype }}"
-#    opts: "{{ item.options }},noatime"
-#    state: present
-#  loop: "{{ ansible_mounts }}"
-#  when: item.device.find("mmcblk") >= 0 and item.options.find("noatime") == -1
-
-#- name: tmpfs /var/log
-#  ansible.posix.mount:
-#    path: "/var/log"
-#    src: "tmpfs"
-#    fstype: "tmpfs"
-#    opts: "defaults,noatime,nosuid,mode=0755,size=100m"
-#    state: present
-
 - name: Publish hostname to dhcp server
   lineinfile: dest=/etc/dhcpcd.conf regexp='^#?hostname' line='hostname'
+
+- name: Add ntp servers option
+  lineinfile: dest=/etc/dhcpcd.conf regexp='^#option ntp_servers' line='option ntp_servers'
+
+- name: Create timesyncd.conf.d directory
+  file:
+    path: "/etc/systemd/timesyncd.conf.d"
+    state: "directory"
+
+- name: Copy timesyncd hook
+  copy:
+    src: timesyncd.conf
+    dest: /lib/dhcpcd/dhcpcd-hooks/60-timesyncd.conf
 
 - name: Restart dhcpd
   ansible.builtin.systemd:

@@ -14,7 +14,7 @@
   become_method: sudo
   tasks:
     - community.general.pacman:
-        name: ['vim', 'zip', 'unzip', 'wget']
+        name: ['vim', 'zip', 'unzip', 'wget', 'jq']
         state: latest
         update_cache: yes
 
@@ -72,4 +72,3 @@
 #  become_method: sudo
 #  tasks:
 #    - reboot:
-#  serial: 1

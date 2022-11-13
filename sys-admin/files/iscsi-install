@@ -1,0 +1,12 @@
+build () {
+        map add_module iscsi_tcp iscsi_ibft libiscsi libiscsi_tcp scsi_transport_iscsi crc32c
+        add_checked_modules "/drivers/net"
+        add_binary iscsistart
+        add_runscript
+}
+
+help () {
+cat <<HELPEOF
+        This hook allows you to boot from an iSCSI target.
+HELPEOF
+}

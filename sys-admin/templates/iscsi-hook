@@ -1,0 +1,4 @@
+run_hook () {
+        msg "Mounting iSCSI target"
+        iscsistart -i {{ iscsi_initiator }} -t {{ iscsi_target }} -g 1 -a {{ iscsi_portal_ip }} -d 1 -P 'node.conn[0].timeo.noop_out_interval=0' -P 'node.conn[0].timeo.noop_out_timeout=0' -P 'node.session.timeo.replacement_timeout=86400'
+}

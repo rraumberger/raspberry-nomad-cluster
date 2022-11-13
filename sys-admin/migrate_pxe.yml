@@ -1,0 +1,269 @@
+---
+#
+# This Playbook migrates Raspberry PIs to PXE boot (aka SDcard-less boot)
+# Steps:
+# - Copy boot partition to TFTP folder
+# - Copy root partition to NFS folder
+# - Update bootconfig and fstab
+# - Reboot
+#
+# Links:
+# - https://forum.level1techs.com/t/the-ultimate-home-server-herd-of-netboot-raspberry-pi-sure/181022/29
+# - https://mikejmcfarlane.github.io/blog/2020/09/12/PXE-boot-raspberry-pi-4-from-synology-diskstation
+# - https://www.raspberrypi.com/documentation/computers/remote-access.html#network-boot-your-raspberry-pi
+#
+- name: Stop Services
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Stop Nomad
+      ansible.builtin.systemd:
+        name: nomad
+        state: stopped
+        enabled: false
+      ignore_errors: yes
+    - name: Stop Vault
+      ansible.builtin.systemd:
+        name: vault
+        state: stopped
+        enabled: false
+      ignore_errors: yes
+    - name: Stop Docker
+      ansible.builtin.systemd:
+        name: docker
+        state: stopped
+        enabled: false
+      ignore_errors: yes
+    - name: Stop Consul
+      ansible.builtin.systemd:
+        name: consul
+        state: stopped
+        enabled: false
+      ignore_errors: yes
+
+- name: Stop Gluster Volume
+  hosts: storage
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Stop Gluster Volume
+      gluster.gluster.gluster_volume:
+        state: stopped
+        name: "{{ gluster_volume_name }}"
+      run_once: true
+
+- name: Prerequisites
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Ensure required packages installed
+      community.general.pacman:
+        name: ['rsync', 'libiscsi', 'open-iscsi', 'nfs-utils', 'mkinitcpio-nfs-utils']
+        state: latest
+    - name: Disable Swap
+      ansible.builtin.shell: "swapoff --all"
+    - name: Start and Enable iSCSI service
+      ansible.builtin.systemd:
+        name: iscsid
+        state: started
+        enabled: yes
+    - name: Adjust iSCSI timeout (1)
+      lineinfile:
+        path: /etc/iscsi/iscsid.conf
+        line: "node.conn[0].timeo.noop_out_interval = 0"
+        search_string: 'node.conn[0].timeo.noop_out_interval ='
+        state: present
+    - name: Adjust iSCSI timeout (2)
+      lineinfile:
+        path: /etc/iscsi/iscsid.conf
+        line: "node.conn[0].timeo.noop_out_timeout = 0"
+        search_string: 'node.conn[0].timeo.noop_out_timeout ='
+        state: present
+    - name: Adjust iSCSI timeout (3)
+      lineinfile:
+        path: /etc/iscsi/iscsid.conf
+        line: "node.session.timeo.replacement_timeout = 86400"
+        search_string: 'node.session.timeo.replacement_timeout ='
+        state: present
+    - name: Disable systemd-networkd
+    # This is necessary because otherwise iSCSI connections are lost during early boot leading to a kernel panic
+    # This was a pain in the ass to figure out...
+    # My guess is that networkd and dhcpcd interfere with each other which leads to iSCSI to not being able to recover the session
+      ansible.builtin.systemd:
+        name: systemd-networkd
+        state: stopped
+        enabled: false
+    - reboot: # Required to start the iSCSI kernel module
+
+- name: Patch Raspberry PI to boot from PXE
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Adjust iSCSI initiator name
+      lineinfile:
+        path: /etc/iscsi/initiatorname.iscsi
+        line: "InitiatorName={{ iscsi_initiator }}"
+        search_string: 'InitiatorName='
+        state: present
+    - name: Add mkinitcpio iSCSI hook
+      lineinfile:
+        path: /etc/mkinitcpio.conf
+        line: 'HOOKS="base udev autodetect modconf net iscsi block keyboard keymap resume filesystems fsck"'
+        regexp: '^HOOKS='
+    - name: Create Initcpio iSCSI module
+      ansible.builtin.copy:
+        dest: /etc/initcpio/install/iscsi
+        src: iscsi-install
+    - name: Create Initcpio iSCSI hook
+      ansible.builtin.template:
+        dest: /etc/initcpio/hooks/iscsi
+        src: iscsi-hook
+    - name: Configure networking in initramfs # Without this the iSCSI module will not start and consequently unrecoverably break the boot process
+      ansible.builtin.shell: 'echo -n " ip=dhcp" >> /boot/cmdline.txt'
+    - name: Build new image
+      ansible.builtin.shell: 'mkinitcpio -p linux-rpi4'
+    - reboot: # Required in order to avoid conflicts between iscsistart and iscsiadm sessions. initramfs hook already mounts the new target on next boot
+
+- name: Copy Data
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Format iSCSI block device
+      ansible.builtin.shell: "mkfs.ext4 -m0 {{ iscsi_dev }}"
+    - name: Ensure iSCSI mount dir
+      file:
+        path: "/mnt/iscsi"
+        state: "directory"
+    - name: Mount iscsi dev
+      ansible.builtin.shell: mount {{ iscsi_dev }} /mnt/iscsi
+    - name: Determine Raspberry PI serial
+      ansible.builtin.shell: "/opt/vc/bin/vcgencmd otp_dump | grep 28: | sed s/.*://g | tr -d '\n'"
+      register: vcgencmd_out
+      failed_when: ( vcgencmd_out.rc not in [ 0 ] )
+    - name: 'DEBUG Raspberry PI Serial'
+      ansible.builtin.debug:
+        msg: "{{ vcgencmd_out.stdout }}"
+    - name: Ensure /mnt/rpi-tftpboot directory
+      file:
+        path: "/mnt/rpi-tftpboot"
+        state: "directory"
+    - name: Mount rpi-tftpboot
+      ansible.posix.mount:
+        src: "{{ nfs_tftpboot }}"
+        path: "/mnt/rpi-tftpboot"
+        opts: "defaults,_netdev"
+        state: mounted
+        fstype: nfs
+        fstab: /tmp/tmp.fstab
+    - name: Ensure PI serial directory in tftpboot dir
+      file:
+        path: "/mnt/rpi-tftpboot/{{ vcgencmd_out.stdout | trim }}"
+        state: "directory"
+    - name: Copy /boot
+      ansible.builtin.shell: "cp -r /boot/* /mnt/rpi-tftpboot/{{ vcgencmd_out.stdout | trim }}/"
+    - name: Copy /
+      ansible.builtin.shell: "rsync -xa --progress --exclude /nfs --exclude /mnt/iscsi --exclude /mnt/rpi-tftpboot / /mnt/iscsi/"
+      register: rsync_out
+      failed_when: ( rsync_out.rc not in [ 0 ] )
+
+- name: Adjust /etc/fstab
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Add /proc config
+      lineinfile:
+        path: /mnt/iscsi/etc/fstab
+        line: "proc /proc proc  defaults  0 0"
+        search_string: '/proc'
+        state: present
+    - name: Disable existing boot partition (LABEL)
+      lineinfile:
+        path: /mnt/iscsi/etc/fstab
+        line: '#\1'
+        regexp: '^(LABEL=.*/boot.*)$'
+        backrefs: yes
+    - name: Disable existing boot partition (PARTUUID)
+      lineinfile:
+        path: /mnt/iscsi/etc/fstab
+        line: '#\1'
+        regexp: '^(PARTUUID=.*/boot.*)$'
+        backrefs: yes
+    - name: Disable existing root partition (PARTUUID)
+      lineinfile:
+        path: /mnt/iscsi/etc/fstab
+        line: '#\1'
+        regexp: '^(PARTUUID=.*/.*)$'
+        backrefs: yes
+    - name: Disable existing root partition (LABEL)
+      lineinfile:
+        path: /mnt/iscsi/etc/fstab
+        line: '#\1'
+        regexp: '^(LABEL=.*/.*)$'
+        backrefs: yes
+    - name: Disable existing NFS root partition
+      lineinfile:
+        path: /mnt/iscsi/etc/fstab
+        line: '#\1'
+        regexp: '^(.*\s.*/\s.*nfs.*)$'
+        backrefs: yes
+    - name: Add new boot partition
+      lineinfile:
+        path: /mnt/iscsi/etc/fstab
+        line: "{{ nfs_tftpboot }}/{{ vcgencmd_out.stdout | trim }} /boot nfs defaults 0 2"
+    - name: Gather iSCSI block device uuid
+      ansible.builtin.shell: "blkid {{ iscsi_dev }} --output export | grep UUID | tr -d '\n'"
+      register: iscsi_blkid_out
+      failed_when: ( iscsi_blkid_out.rc not in [ 0 ] )
+    - name: Add new root partition
+      lineinfile:
+        path: /mnt/iscsi/etc/fstab
+        line: "{{ iscsi_blkid_out.stdout | trim }} / ext4 defaults,_netdev,noatime,x-systemd.requires=iscsid.service 0 1"
+    - name: Update bootconfig
+      ansible.builtin.copy:
+        dest: /mnt/rpi-tftpboot/{{ vcgencmd_out.stdout | trim }}/cmdline.txt
+        content: "root={{ iscsi_blkid_out.stdout | trim }} ip=dhcp rw rootwait console=serial0,115200 console=tty3 selinux=0 quiet splash plymouth.ignore-serial-consoles smsc95xx.turbo_mode=N dwc_otg.lpm_enable=0 usbhid.mousepoll=8 audit=0 usb-storage.quirks=152d:1561:u"
+    - name: Alter the LED mode
+    # The default LED mode shows HDD (aka SDCard) activity which doesn't make sense for PXE boots without SDCards
+      lineinfile:
+        path: /mnt/rpi-tftpboot/{{ vcgencmd_out.stdout | trim }}/config.txt
+        line: 'dtparam=act_led_trigger=heartbeat'
+
+
+- name: Update bootloader
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Update firmware
+      ansible.builtin.shell: "rpi-eeprom-update -a"
+    - name: Save current bootloader config
+      ansible.builtin.shell: "rpi-eeprom-config >/tmp/bootloader.cfg"
+    - name: Add BOOT_ORDER param
+      lineinfile:
+        path: /tmp/bootloader.cfg
+        line: "BOOT_ORDER=0xF21"
+        search_string: 'BOOT_ORDER'
+        state: present
+    - name: Update Raspberry eeprom
+      ansible.builtin.shell: "rpi-eeprom-config --apply /tmp/bootloader.cfg"
+
+- name: Reboot & Shutdown
+  hosts: all
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - ansible.builtin.reboot: # so it applies the eeprom update
+    - community.general.shutdown: # Physical SDCards can't be removed by Ansible for obvious reasons

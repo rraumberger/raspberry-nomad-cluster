@@ -90,3 +90,7 @@
 /iot mqtt publish broker=$broker topic=$topic message=$message
 :put ("[*] Done")
 ```
+
+# Create Vault Token for Github Runner
+
+`vault token create -policy=ci -no-default-policy=true -orphan=true`

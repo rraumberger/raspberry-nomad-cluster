@@ -39,6 +39,11 @@
             "command": "./utils/setupSys.sh hosts"
         },
         {
+            "label": "Migrate PXE",
+            "type": "shell",
+            "command": "./utils/migratePxe.sh hosts"
+        },
+        {
             "label": "Setup Dynatrace",
             "type": "shell",
             "command": "./utils/setupDynatrace.sh hosts"

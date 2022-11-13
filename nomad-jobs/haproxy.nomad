@@ -207,8 +207,8 @@ backend registry.lab.raumberger.net
 backend mirror.lab.raumberger.net
     server-template srv 5 _docker-mirror._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
-backend pihole.lab.raumberger.net
-    server-template srv 5 _pihole._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+#backend pihole.lab.raumberger.net
+#    server-template srv 5 _pihole._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 backend miniflux.lab.raumberger.net
     server-template srv 5 _miniflux._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
