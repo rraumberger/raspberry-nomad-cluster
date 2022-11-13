@@ -48,7 +48,7 @@ job "postgres" {
       }
 
       config {
-        image = "postgres:latest"
+        image = "postgres:14"
       }
 
       env {
