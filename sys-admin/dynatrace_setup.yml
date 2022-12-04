@@ -9,9 +9,21 @@
   tasks:
     - import_role:
         name: oneagent
+    - name: Add nettracer capabilities
+      command:
+        cmd: setcap CAP_BPF,CAP_PERFMON,CAP_SYS_PTRACE,CAP_SYS_RESOURCE,CAP_SYS_ADMIN,CAP_DAC_OVERRIDE+ep /opt/dynatrace/oneagent/agent/lib64/oneagentnettracer
+
   vars:
     oneagent_install_args:
       - --restart-service
-      - --set-network-zone='{{ oneagent_network_zone }}'
-      - --set-host-group='{{ group_names[0] }}'
-  serial: 2
+      - --set-network-zone={{ oneagent_network_zone }}
+      - --set-host-group={{ group_names[0] }}
+  serial: 4
+
+#- name: Reboot
+#  hosts: all
+#  remote_user: root
+#  become: yes
+#  become_method: sudo
+#  tasks:
+#    - reboot:
