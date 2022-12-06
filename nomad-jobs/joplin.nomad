@@ -1,4 +1,4 @@
-job "miniflux" {
+job "joplin" {
   datacenters = ["homenet"]
   type        = "service"
 
@@ -11,13 +11,13 @@ job "miniflux" {
     value = "storage"
   }
 
-  group "miniflux" {
+  group "joplin" {
     count = 1
 
     network {
       mode = "bridge"
       port "http" {
-        to = 8080
+        to = 22300
       }
     }
 
@@ -27,16 +27,17 @@ job "miniflux" {
       unlimited      = true
     }
 
-    task "miniflux" {
+    task "joplin" {
       driver = "docker"
 
       config {
-        image = "miniflux/miniflux:2.0.40"
+        image = "florider89/joplin-server" # there's currently no official arm64 support for joplin TODO: move to dedicated GH repo
       }
 
       env {
-        RUN_MIGRATIONS=1
-        CREATE_ADMIN=1
+        APP_BASE_URL = "https://notes.lab.raumberger.net:443"
+        APP_PORT = 22300
+        DB_CLIENT = pg
       }
 
       vault {
@@ -48,25 +49,17 @@ job "miniflux" {
         env = true
         data = <<EOH
 {{with secret "homelab/data/postgres"}}
-DATABASE_URL="postgres://{{.Data.data.minifluxUsername}}:{{.Data.data.minifluxPassword}}@postgres.service.consul/{{.Data.data.minifluxDatabase}}?sslmode=disable"
-{{end}}
-EOH
-      }
-
-      template {
-        destination = "secret/miniflux.env"
-        env = true
-        data = <<EOH
-{{with secret "homelab/data/miniflux"}}
-ADMIN_USERNAME="{{.Data.data.adminUsername}}"
-ADMIN_PASSWORD="{{.Data.data.adminPassword}}"
+POSTGRES_PASSWORD={{.Data.data.joplinPassword}}
+POSTGRES_DATABASE={{.Data.data.joplinDatabase}}
+POSTGRES_USER={{.Data.data.joplinUsername}}
+POSTGRES_HOST=postgres.service.consul
 {{end}}
 EOH
       }
     }
 
     service {
-      name = "miniflux"
+      name = "joplin"
       port = "http"
     }
   }

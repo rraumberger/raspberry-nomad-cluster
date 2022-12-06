@@ -173,6 +173,7 @@ frontend homelab
     # HSTS (63072000 seconds)
     http-response set-header Strict-Transport-Security max-age=63072000
 
+    http-request set-header X-Forwarded-Proto https
     use_backend %[req.hdr(Host),lower]
 
 frontend public
@@ -185,6 +186,8 @@ frontend public
     # HSTS (63072000 seconds)
     http-response set-header Strict-Transport-Security max-age=63072000
 
+
+    http-request set-header X-Forwarded-Proto https
     use_backend raumberger.dev
 
 # Based on https://github.com/lelylan/haproxy-mqtt/blob/master/haproxy.cfg
@@ -230,6 +233,9 @@ backend concourse.lab.raumberger.net
 
 backend raumberger.dev
     server-template srv 5 _raumbergerDev._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
+backend notes.lab.raumberger.net
+    server-template srv 5 _joplin._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 #backend deluge.lab.raumberger.net
 #    server-template deluge 5 _deluge._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
