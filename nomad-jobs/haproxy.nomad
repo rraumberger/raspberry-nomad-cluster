@@ -225,12 +225,6 @@ backend vault.lab.raumberger.net
 backend consul.lab.raumberger.net
     server-template consul 5 consul.service.consul:8500 resolvers consul resolve-prefer ipv4 check
 
-backend devtools.lab.raumberger.net
-    server-template srv 5 _cyberchef._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
-
-backend concourse.lab.raumberger.net
-    server-template srv 5 _concourse._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
-
 backend raumberger.dev
     server-template srv 5 _raumbergerDev._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
