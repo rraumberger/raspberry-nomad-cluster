@@ -19,11 +19,6 @@
             "command": "./utils/setupVault.sh hosts"
         },
         {
-            "label": "Setup Github Runner",
-            "type": "shell",
-            "command": "./utils/setupGithubRunner.sh hosts"
-        },
-        {
             "label": "Setup Full Cluster",
             "type": "shell",
             "command": "./utils/setupCluster.sh hosts"

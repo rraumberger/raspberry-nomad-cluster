@@ -10,7 +10,7 @@ client {
     reserved_ports = "22"
   }
   options = {
-    "driver.allowlist" = "docker,raw_exec"
+    "driver.allowlist" = "docker"
   }
 
   host_volume "sys-data" {
@@ -29,12 +29,9 @@ client {
 plugin "docker" {
   config {
     allow_privileged = true
-  }
-}
 
-plugin "raw_exec" {
-  config {
-    enabled = true
-    no_cgroups = true
+    volumes {
+      enabled      = true
+    }
   }
 }

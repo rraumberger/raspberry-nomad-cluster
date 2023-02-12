@@ -1,7 +1,0 @@
----
-
-- include_tasks: install_runner.yml
-  when: install_state != "absent"
-
-- include_tasks: uninstall_runner.yml
-  when: install_state == "absent"

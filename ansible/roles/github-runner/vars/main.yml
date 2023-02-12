@@ -1,9 +1,0 @@
----
-systemd_service: github-runner
-systemd_location: "/etc/systemd/system/{{ systemd_service }}.service"
-install_location: /opt/github/runner
-work_dir_to_root: ../../..
-download_url: https://github.com/actions/runner/releases/download/v{{ version }}/actions-runner-linux-arm64-{{ version }}.tar.gz
-download_destination: /tmp/runner_{{ version }}_linux_arm64.zip
-user: github
-group: github
