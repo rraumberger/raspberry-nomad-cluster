@@ -10,6 +10,12 @@ job "github-runner" {
   group "org" {
     count = 1
 
+    reschedule {
+      delay          = "30s"
+      delay_function = "constant"
+      unlimited      = true
+    }
+
     ephemeral_disk {
       size = 5000
     }
@@ -48,6 +54,12 @@ EOF
 
   group "spot" {
     count = 1
+
+    reschedule {
+      delay          = "30s"
+      delay_function = "constant"
+      unlimited      = true
+    }
 
     ephemeral_disk {
       size = 5000
