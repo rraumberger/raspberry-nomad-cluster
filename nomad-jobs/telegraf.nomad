@@ -29,7 +29,7 @@ job "telegraf" {
       driver = "docker"
 
       config {
-        image = "telegraf:1.23.4"
+        image = "telegraf:1.26"
         image_pull_timeout = "15m"
         volumes = [
           "local/telegraf.conf:/etc/telegraf/telegraf.conf:ro",
@@ -210,7 +210,7 @@ omit_hostname = true
         path = "memory"
         tags = ["type"]
 
-        [[inputs.mqtt_consumer.json_v2.fields]]
+        [inputs.mqtt_consumer.json_v2.object.fields]
           memory = "uint"
 
 # Temperature
@@ -242,7 +242,7 @@ omit_hostname = true
         path = "temp"
         tags = ["sensor"]
 
-        [[inputs.mqtt_consumer.json_v2.fields]]
+        [inputs.mqtt_consumer.json_v2.object.fields]
           temp = "float"
 
 # Fan Speed
@@ -274,7 +274,7 @@ omit_hostname = true
         path = "fans"
         tags = ["fan"]
 
-        [[inputs.mqtt_consumer.json_v2.fields]]
+        [inputs.mqtt_consumer.json_v2.object.fields]
           rpm = "uint"
 
 
