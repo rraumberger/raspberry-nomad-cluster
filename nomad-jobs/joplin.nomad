@@ -31,13 +31,13 @@ job "joplin" {
       driver = "docker"
 
       config {
-        image = "florider89/joplin-server" # there's currently no official arm64 support for joplin TODO: move to dedicated GH repo
+        image = "florider89/joplin-server:2.10.11" # there's currently no official arm64 support for joplin TODO: move to dedicated GH repo
       }
 
       env {
-        APP_BASE_URL = "https://notes.lab.raumberger.net:443"
-        APP_PORT = 22300
-        DB_CLIENT = pg
+        APP_BASE_URL="https://notes.lab.raumberger.net:443"
+        APP_PORT=22300
+        DB_CLIENT="pg"
       }
 
       vault {

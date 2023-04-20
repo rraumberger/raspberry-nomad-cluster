@@ -46,7 +46,7 @@ job "certbot-renew" {
       }
 
       config {
-        image = "certbot/dns-route53:arm64v8-v1.29.0"
+        image = "certbot/dns-route53:arm64v8-v2.5.0"
         args = ["renew", "--dns-route53", "--post-hook", "find /etc/letsencrypt/archive -regex \".*\\.pem$\" | while read file; do chmod 644 \"$file\"; done"]
       }
 

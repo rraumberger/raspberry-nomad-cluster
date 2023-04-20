@@ -29,7 +29,7 @@ job "telegraf" {
       driver = "docker"
 
       config {
-        image = "telegraf:1.26"
+        image = "telegraf:1.26.1"
         image_pull_timeout = "15m"
         volumes = [
           "local/telegraf.conf:/etc/telegraf/telegraf.conf:ro",
@@ -67,6 +67,8 @@ omit_hostname = true
 #{{ end }}
 #  ]
 
+################# Shelly Plug #################
+
 [[inputs.mqtt_consumer]]
   servers = ["tcp://mqtt.lab.raumberger.net:1883"]
 
@@ -79,7 +81,7 @@ omit_hostname = true
   topic_tag = ""
   data_format = "value"
   data_type = "float"
-  client_id = "telegraf-shelly"
+  client_id = "telegraf-shelly-plug"
 
   [[inputs.mqtt_consumer.topic_parsing]]
     topic = "shellies/+/+/+/+"
@@ -91,6 +93,29 @@ omit_hostname = true
     tags = "_/shelly/_"
     measurement = "_/_/measurement"
 
+
+################# Shelly HT #################
+
+[[inputs.mqtt_consumer]]
+  servers = ["tcp://mqtt.lab.raumberger.net:1883"]
+
+  ## Topics that will be subscribed to.
+  topics = [
+    "shellies/+/sensor/temperature",
+    "shellies/+/sensor/humidity",
+    "shellies/+/sensor/battery",
+    "shellies/+/sensor/error"
+  ]
+  name_prefix = "shelly-ht."
+  topic_tag = ""
+  data_format = "value"
+  data_type = "float"
+  client_id = "telegraf-shelly-ht"
+
+  [[inputs.mqtt_consumer.topic_parsing]]
+    topic = "shellies/+/+/+"
+    tags = "_/shelly/_/_"
+    measurement = "_/_/_/measurement"
 
 ################# Mikrotik #################
 

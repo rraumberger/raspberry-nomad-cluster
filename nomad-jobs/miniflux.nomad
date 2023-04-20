@@ -31,7 +31,7 @@ job "miniflux" {
       driver = "docker"
 
       config {
-        image = "miniflux/miniflux:2.0.40"
+        image = "miniflux/miniflux:2.0.43"
       }
 
       env {
