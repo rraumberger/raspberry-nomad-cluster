@@ -26,7 +26,8 @@ job "github-runner" {
       config {
         image = "myoung34/github-runner"
         volumes = [
-          "/var/run/docker.sock:/var/run/docker.sock"
+          "/var/run/docker.sock:/var/run/docker.sock",
+          "/usr/bin/nomad:/usr/bin/nomad"
         ]
       }
 
@@ -71,7 +72,8 @@ EOF
       config {
         image = "myoung34/github-runner"
         volumes = [
-          "/var/run/docker.sock:/var/run/docker.sock"
+          "/var/run/docker.sock:/var/run/docker.sock",
+          "/usr/bin/nomad:/usr/bin/nomad"
         ]
       }
 
