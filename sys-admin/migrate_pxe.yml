@@ -16,7 +16,6 @@
   hosts: all
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - name: Stop Nomad
       ansible.builtin.systemd:
@@ -47,7 +46,6 @@
   hosts: storage
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - name: Stop Gluster Volume
       gluster.gluster.gluster_volume:
@@ -59,7 +57,6 @@
   hosts: all
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - name: Ensure required packages installed
       community.general.pacman:
@@ -104,7 +101,6 @@
   hosts: all
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - name: Adjust iSCSI initiator name
       lineinfile:
@@ -135,7 +131,6 @@
   hosts: all
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - name: Format iSCSI block device
       ansible.builtin.shell: "mkfs.ext4 -m0 {{ iscsi_dev }}"
@@ -179,7 +174,6 @@
   hosts: all
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - name: Add /proc config
       lineinfile:
@@ -244,7 +238,6 @@
   hosts: all
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - name: Update firmware
       ansible.builtin.shell: "rpi-eeprom-update -a"
@@ -263,7 +256,6 @@
   hosts: all
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - ansible.builtin.reboot: # so it applies the eeprom update
     - community.general.shutdown: # Physical SDCards can't be removed by Ansible for obvious reasons

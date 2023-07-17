@@ -1,7 +1,6 @@
 datacenter = "homenet"
 data_dir = "{{ consul_data_dir }}"
-advertise_addr = "{{ '{{ GetInterfaceIP \\"eth0\\" }}' }}"
-bind_addr = "{{ '{{ GetInterfaceIP \\"eth0\\" }}' }}"
+bind_addr = "{% raw %}{{ GetAllInterfaces | include \"network\" \"{% endraw %}{{ private_network_range }}{% raw %}\" | sort \"size,address\" | attr \"address\" }}{% endraw %}"
 client_addr = "0.0.0.0"
 disable_update_check = true
 enable_syslog = true

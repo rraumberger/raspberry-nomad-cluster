@@ -12,6 +12,7 @@
 - name: Set requires installation fact
   set_fact:
     requires_nomad_installation: "{{ installed_version_out.rc != 0 or version not in installed_version_out.stdout}}"
+    architecture: "{{ 'amd64' if ansible_architecture == 'x86_64' else 'arm64' }}"
 
 - name: DEBUG Installation required?
   ansible.builtin.debug:
@@ -24,33 +25,28 @@
     state: "directory"
 
 - name: Download Nomad
-  become: false
   when: true in installation_required_list
   vars:
     installation_required_list: "{{ ansible_play_hosts|
                                     map('extract', hostvars, 'requires_nomad_installation')|
                                     list }}"
-  connection: local
   get_url:
-    url: "https://releases.hashicorp.com/nomad/{{version}}/nomad_{{version}}_linux_arm64.zip"
-    dest: "/tmp/nomad_{{version}}_linux_arm64.zip"
-    checksum: "sha256:{{shaHash}}"
-  run_once: true
+    url: "https://releases.hashicorp.com/nomad/{{version}}/nomad_{{version}}_linux_{{ architecture }}.zip"
+    dest: "/tmp/nomad_{{version}}_linux_{{ architecture }}.zip"
+    checksum: "sha256:https://releases.hashicorp.com/nomad/{{version}}/nomad_{{version}}_SHA256SUMS"
 
 - name: Unarchive Nomad
   when: requires_nomad_installation
   ansible.builtin.unarchive:
-    src: "/tmp/nomad_{{version}}_linux_arm64.zip"
+    src: "/tmp/nomad_{{version}}_linux_{{ architecture }}.zip"
+    remote_src: yes
     dest: /opt/nomadInstall
 
-- name: Remove local downloaded archive
+- name: Remove downloaded archive
   when: requires_nomad_installation
-  become: false
-  connection: local
   file:
-    path: "/tmp/nomad_{{version}}_linux_arm64.zip"
+    path: "/tmp/nomad_{{version}}_linux_{{ architecture }}.zip"
     state: absent
-  run_once: true
 
 - name: Add Nomad group
   ansible.builtin.group:

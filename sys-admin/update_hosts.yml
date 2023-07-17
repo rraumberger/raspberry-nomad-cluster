@@ -1,9 +1,8 @@
 ---
 - name: Stop all services
-  hosts: all
+  hosts: storage,computing,controller
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - name: Stop Nomad
       ansible.builtin.systemd:
@@ -37,7 +36,6 @@
   hosts: storage
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - name: Stop Gluster Volume
       gluster.gluster.gluster_volume:
@@ -46,10 +44,9 @@
       run_once: true
 
 - name: Add custom hosts # Due to the PiHole being stopped too, it add some domains manually
-  hosts: all
+  hosts: storage,computing,controller
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - lineinfile:
         path: /etc/hosts
@@ -58,10 +55,9 @@
       loop: "{{ upgrade_hosts }}"
 
 - name: Update Packages
-  hosts: all
+  hosts: storage,computing,controller
   remote_user: root
   become: yes
-  become_method: sudo
   roles:
     - sys-upgrade
   serial: 6
@@ -70,7 +66,6 @@
   hosts: storage
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - reboot:
 
@@ -78,7 +73,6 @@
   hosts: storage
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - name: Start Gluster Volume
       gluster.gluster.gluster_volume:
@@ -93,7 +87,6 @@
   hosts: controller
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - reboot:
 
@@ -101,15 +94,13 @@
   hosts: computing
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - reboot:
 
 - name: Ensure Consul is in a running state
-  hosts: all
+  hosts: storage,computing,controller
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - ansible.builtin.systemd:
         name: consul
@@ -127,7 +118,6 @@
   hosts: controller
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - ansible.builtin.systemd:
         name: vault
@@ -145,7 +135,6 @@
   hosts: controller
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - name: Unsealing the vault
       environment:
@@ -154,10 +143,9 @@
       shell: vault operator unseal ${VAULT_UNSEAL_KEY}
 
 - name: Restart Nomad
-  hosts: all
+  hosts: storage,computing,controller
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - ansible.builtin.systemd:
         name: nomad
@@ -165,10 +153,9 @@
         enabled: true
 
 - name: Remove custom hosts
-  hosts: all
+  hosts: storage,computing,controller
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - lineinfile:
         path: /etc/hosts

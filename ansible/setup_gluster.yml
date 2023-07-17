@@ -3,7 +3,6 @@
   hosts: storage
   remote_user: root
   become: yes
-  become_method: sudo
   roles:
     - glusterfs
   vars:
@@ -11,10 +10,9 @@
     install_state: present
 
 - name: Install Gluster Clients
-  hosts: all:!storage
+  hosts: controller,computing
   remote_user: root
   become: yes
-  become_method: sudo
   roles:
     - glusterfs
   vars:

@@ -1,13 +1,12 @@
 ---
 
 - name: Install Consul
-  hosts: all
+  hosts: controller,storage,computing
   remote_user: root
   become: yes
-  become_method: sudo
   roles:
     - consul
   vars:
     install_state: latest
     version: "{{ consul_version }}"
-    shaHash: "{{ consul_version_hash }}"
+

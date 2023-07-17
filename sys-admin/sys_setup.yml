@@ -1,17 +1,15 @@
 ---
-- name: Ensure system configuration
-  hosts: all
+- name: Ensure RPI system configuration
+  hosts: raspberrypi
   remote_user: root
   become: yes
-  become_method: sudo
   roles:
     - sys-setup
 
 - name: Install essential packages
-  hosts: all
+  hosts: raspberrypi,archlinux,manjarolinux
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - community.general.pacman:
         name: ['vim', 'zip', 'unzip', 'wget', 'jq']
@@ -19,10 +17,9 @@
         update_cache: yes
 
 - name: Start and Enable Cronie service
-  hosts: all
+  hosts: raspberrypi,archlinux,manjarolinux
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - community.general.pacman:
         name: ['cronie']
@@ -47,28 +44,25 @@
         enabled: yes
 
 - name: Remove unnecessary packages
-  hosts: all
+  hosts: raspberrypi,archlinux,manjarolinux
   remote_user: root
   become: yes
-  become_method: sudo
   tasks:
     - community.general.pacman:
         name: ['brcm-patchram-plus']
         state: absent
         extra_args: --recursive --nosave
 
-#- name: Setup Storage
-#  hosts: storage
-#  remote_user: root
-#  become: yes
-#  become_method: sudo
-#  roles:
-#    - storage-setup
+- name: Setup Storage
+  hosts: raspberrypi&storage
+  remote_user: root
+  become: yes
+  roles:
+    - storage-setup
 
 #- name: Reboot
 #  hosts: all
 #  remote_user: root
 #  become: yes
-#  become_method: sudo
 #  tasks:
 #    - reboot:

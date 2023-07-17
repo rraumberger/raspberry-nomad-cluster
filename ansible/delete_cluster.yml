@@ -4,7 +4,6 @@
   hosts: computing
   remote_user: root
   become: yes
-  become_method: sudo
   roles:
     - github-runner
   vars:
@@ -14,7 +13,6 @@
   hosts: all
   remote_user: root
   become: yes
-  become_method: sudo
   roles:
     - nomad
   vars:
@@ -24,7 +22,6 @@
   hosts: controller
   remote_user: root
   become: yes
-  become_method: sudo
   roles:
     - vault
   vars:
@@ -34,7 +31,6 @@
   hosts: all
   remote_user: root
   become: yes
-  become_method: sudo
   roles:
     - consul
   vars:
@@ -44,7 +40,6 @@
   hosts: all:!storage
   remote_user: root
   become: yes
-  become_method: sudo
   roles:
     - glusterfs
   vars:

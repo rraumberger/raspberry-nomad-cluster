@@ -4,10 +4,8 @@
   hosts: controller
   remote_user: root
   become: yes
-  become_method: sudo
   roles:
     - vault
   vars:
     install_state: latest
     version: "{{ vault_version }}"
-    shaHash: "{{ vault_version_hash }}"

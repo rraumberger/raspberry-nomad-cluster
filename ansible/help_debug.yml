@@ -1,0 +1,7 @@
+---
+- name: Debug
+  hosts: all
+  tasks:
+    - name: Print hostvars
+      debug: msg="{{ groups['storage'] | map('extract', hostvars, ['ansible_host']) }}"
+      run_once: true

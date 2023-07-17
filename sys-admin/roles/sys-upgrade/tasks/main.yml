@@ -3,3 +3,14 @@
   community.general.pacman:
     update_cache: yes
     upgrade: yes
+
+# Workaround for mkinitcpio oddity
+# https://bbs.archlinux.org/viewtopic.php?pid=2110160#p2110160
+# Otherwise the TFTP server cannot read the initramfs file and the boot stops
+- name: Ensure correct permissions on initramfs
+  ansible.builtin.file:
+    path: /boot/initramfs-linux.img
+    owner: root
+    group: root
+    mode: '0644'
+    state: 'file'

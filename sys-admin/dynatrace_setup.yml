@@ -3,7 +3,6 @@
   hosts: all
   remote_user: root
   become: yes
-  become_method: sudo
   collections:
     - dynatrace.oneagent
   tasks:
@@ -24,6 +23,5 @@
 #  hosts: all
 #  remote_user: root
 #  become: yes
-#  become_method: sudo
 #  tasks:
 #    - reboot:

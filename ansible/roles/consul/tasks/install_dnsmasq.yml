@@ -1,11 +1,4 @@
 ---
-- name: Disable systemd-resolved.service when installed
-  ignore_errors: yes
-  ansible.builtin.systemd:
-    name: systemd-resolved
-    state: stopped
-    enabled: false
-
 - name: Install dnsmasq
   community.general.pacman:
     name: ['extra/dnsmasq']
@@ -27,8 +20,16 @@
 - name: Allow dnsmasq config dir
   lineinfile: dest=/etc/dnsmasq.conf line='conf-dir=/etc/dnsmasq.d'
 
+- name: Disable systemd-resolved.service when installed
+  ignore_errors: yes
+  ansible.builtin.systemd:
+    name: systemd-resolved
+    state: stopped
+    enabled: false
+
 - name: Start and Enable dnsmasq service
   ansible.builtin.systemd:
     name: dnsmasq
     state: restarted
     enabled: yes
+

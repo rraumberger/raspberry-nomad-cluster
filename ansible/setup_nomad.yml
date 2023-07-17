@@ -1,13 +1,11 @@
 ---
 
 - name: Install Nomad
-  hosts: all
+  hosts: controller,computing,storage
   remote_user: root
   become: yes
-  become_method: sudo
   roles:
     - nomad
   vars:
     install_state: install
     version: "{{ nomad_version }}"
-    shaHash: "{{ nomad_version_hash }}"

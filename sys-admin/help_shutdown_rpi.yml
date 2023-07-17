@@ -1,20 +1,20 @@
 ---
 - name: Shutdown Computing
-  hosts: computing
+  hosts: "computing:&raspberrypi"
   remote_user: root
   become: yes
   tasks:
     - community.general.shutdown:
 
 - name: Shutdown Controller
-  hosts: controller
+  hosts: "controller:&raspberrypi"
   remote_user: root
   become: yes
   tasks:
     - community.general.shutdown:
 
 - name: Shutdown Storage
-  hosts: storage
+  hosts: "storage:&raspberrypi"
   remote_user: root
   become: yes
   tasks:

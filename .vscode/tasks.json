@@ -62,6 +62,11 @@
             "label": "[Helper] Shutdown",
             "type": "shell",
             "command": "./utils/helper_shutdown.sh hosts"
+        },
+        {
+            "label": "[Helper] Debug",
+            "type": "shell",
+            "command": "./utils/helper_debug.sh hosts"
         }
     ]
 }
