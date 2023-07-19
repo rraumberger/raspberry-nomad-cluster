@@ -113,17 +113,15 @@ job "haproxy" {
 
       template {
         data = <<EOF
-# generated 2021-11-12, Mozilla Guideline v5.6, HAProxy 2.4.8, OpenSSL 1.1.1l, intermediate configuration
-# https://ssl-config.mozilla.org/#server=haproxy&version=2.4.8&config=intermediate&openssl=1.1.1l&guideline=5.6
+# generated 2023-07-19, Mozilla Guideline v5.7, HAProxy 2.8.1, OpenSSL 1.1.1n, modern configuration
+# https://ssl-config.mozilla.org/#server=haproxy&version=2.8.1&config=modern&openssl=1.1.1n&guideline=5.7
 global
-    # intermediate configuration
-    ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+    # modern configuration
     ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
-    ssl-default-bind-options prefer-client-ciphers no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+    ssl-default-bind-options prefer-client-ciphers no-sslv3 no-tlsv10 no-tlsv11 no-tlsv12 no-tls-tickets
 
-    ssl-default-server-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
     ssl-default-server-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
-    ssl-default-server-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+    ssl-default-server-options no-sslv3 no-tlsv10 no-tlsv11 no-tlsv12 no-tls-tickets
 
     # curl https://ssl-config.mozilla.org/ffdhe2048.txt > /path/to/dhparam
     ssl-dh-param-file /etc/letsencrypt/ffdhe2048.txt
@@ -174,6 +172,9 @@ frontend homelab
     http-response set-header Strict-Transport-Security max-age=63072000
 
     http-request set-header X-Forwarded-Proto https
+#    http-request set-header X-Forwarded-Host %[req.hdr(Host)]
+    option forwardfor
+
     use_backend %[req.hdr(Host),lower]
 
 frontend public
@@ -188,6 +189,8 @@ frontend public
 
 
     http-request set-header X-Forwarded-Proto https
+      http-request set-header X-Forwarded-Host %[req.hdr(Host)]
+    option forwardfor
     use_backend raumberger.dev
 
 # Based on https://github.com/lelylan/haproxy-mqtt/blob/master/haproxy.cfg
@@ -230,6 +233,18 @@ backend raumberger.dev
 
 backend notes.lab.raumberger.net
     server-template srv 5 _joplin._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
+backend spot.lab.raumberger.net
+    server-template srv 5 _spot._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
+backend youtrack.lab.raumberger.net
+    server-template srv 5 _youtrack._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
+backend teamcity.lab.raumberger.net
+    server-template srv 5 _teamcity._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+
+backend hub.lab.raumberger.net
+    server-template srv 5 _hub._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 #backend deluge.lab.raumberger.net
 #    server-template deluge 5 _deluge._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
