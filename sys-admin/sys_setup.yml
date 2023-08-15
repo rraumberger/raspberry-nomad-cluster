@@ -12,7 +12,7 @@
   become: yes
   tasks:
     - community.general.pacman:
-        name: ['vim', 'zip', 'unzip', 'wget', 'jq']
+        name: ['vim', 'zip', 'unzip', 'wget', 'jq', 'lm_sensors']
         state: latest
         update_cache: yes
 
@@ -34,10 +34,34 @@
         group: root
         owner: root
         mode: 0700
+    - template:
+        src: reportOutdatedPackages.sh
+        dest: /etc/cron.d/custom/reportOutdatedPackages.sh
+        group: root
+        owner: root
+        mode: 0700
+    - template:
+        src: dockerCleanup.sh
+        dest: /etc/cron.d/custom/dockerCleanup.sh
+        group: root
+        owner: root
+        mode: 0700
     - name: Report temp every minute
       ansible.builtin.cron:
         name: "report cpu temp"
         job: "/etc/cron.d/custom/reportTemp.sh"
+    - name: Report outdated packages every 3 hours
+      ansible.builtin.cron:
+        name: "report outdated packages"
+        job: "/etc/cron.d/custom/reportOutdatedPackages.sh"
+        minute: "0"
+        hour: "0,3,6,9,12,15,18,21"
+    - name: Nightly docker cleanup
+      ansible.builtin.cron:
+        name: "docker cleanup"
+        job: "/etc/cron.d/custom/dockerCleanup.sh"
+        minute: "0"
+        hour: "0"
     - ansible.builtin.systemd:
         name: cronie
         state: restarted
@@ -54,7 +78,7 @@
         extra_args: --recursive --nosave
 
 - name: Setup Storage
-  hosts: raspberrypi&storage
+  hosts: raspberrypi:&storage
   remote_user: root
   become: yes
   roles:
