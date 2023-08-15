@@ -29,7 +29,7 @@ job "telegraf" {
       driver = "docker"
 
       config {
-        image = "telegraf:1.26.1"
+        image = "telegraf:1.27.3"
         image_pull_timeout = "15m"
         volumes = [
           "local/telegraf.conf:/etc/telegraf/telegraf.conf:ro",
