@@ -3,7 +3,7 @@ data_dir = "{{ nomad_data_dir }}"
 disable_update_check = true
 enable_syslog = true
 log_file = "/tmp/"
-log_rotate_max_files = -1
+log_rotate_max_files = 3
 #log_level = "debug"
 
 telemetry {
@@ -12,10 +12,6 @@ telemetry {
   prometheus_metrics = true
   publish_allocation_metrics = true
   publish_node_metrics = true
-}
-
-ui {
-  enabled = {{ ui_enabled|lower }}
 }
 
 vault {
