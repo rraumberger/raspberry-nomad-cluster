@@ -107,7 +107,7 @@ job "haproxy" {
 
       volume_mount {
         volume      = "certificates"
-        destination = "/etc/letsencrypt"
+        destination = "/etc/certificates"
         read_only   = true
       }
 
@@ -124,7 +124,7 @@ global
     ssl-default-server-options no-sslv3 no-tlsv10 no-tlsv11 no-tlsv12 no-tls-tickets
 
     # curl https://ssl-config.mozilla.org/ffdhe2048.txt > /path/to/dhparam
-    ssl-dh-param-file /etc/letsencrypt/ffdhe2048.txt
+    ssl-dh-param-file /etc/certificates/ffdhe2048.txt
 
     log 127.0.0.1 local0 debug
 
@@ -146,7 +146,7 @@ defaults
 
 frontend stats
     mode    http
-    bind    *:1936  ssl crt /etc/letsencrypt/live/lab.raumberger.net/fullchain.pem alpn h2,http/1.1
+    bind    *:1936  ssl crt /etc/certificates/lab.raumberger.net_ecc/fullchain.cer alpn h2,http/1.1
     redirect scheme https code 301 if !{ ssl_fc }
 
     # HSTS (63072000 seconds)
@@ -157,7 +157,7 @@ frontend stats
 
 frontend homelab
     mode    http
-    bind    *:8443 ssl crt /etc/letsencrypt/live/lab.raumberger.net/fullchain.pem alpn h2,http/1.1
+    bind    *:8443 ssl crt /etc/certificates/lab.raumberger.net_ecc/fullchain.cer alpn h2,http/1.1
     bind    *:8080
 
     acl network_allowed src 192.168.0.0/16
@@ -179,25 +179,31 @@ frontend homelab
 
 frontend public
     mode    http
-    bind    *:8444 ssl crt /etc/letsencrypt/live/lab.raumberger.net/fullchain.pem alpn h2,http/1.1
+    bind    *:8444 ssl crt /etc/certificates/raumberger.net_ecc/fullchain.cer alpn h2,http/1.1
     bind    *:8081
 
     redirect scheme https code 301 if !{ ssl_fc }
+
+    capture         request header Host len 40
+    acl hyperion hdr(host) -i hyperion.raumberger.dev
 
     # HSTS (63072000 seconds)
     http-response set-header Strict-Transport-Security max-age=63072000
 
 
     http-request set-header X-Forwarded-Proto https
-      http-request set-header X-Forwarded-Host %[req.hdr(Host)]
+#    http-request set-header X-Forwarded-Host %[req.hdr(Host)]
     option forwardfor
-    use_backend raumberger.dev
+
+    use_backend hyperion if hyperion
+
+    default_backend raumberger.dev
 
 # Based on https://github.com/lelylan/haproxy-mqtt/blob/master/haproxy.cfg
 listen mqtt
   bind *:1883
   bind *:9001
-  bind *:8883 ssl crt /etc/letsencrypt/live/lab.raumberger.net/fullchain.pem
+  bind *:8883 ssl crt /etc/certificates/lab.raumberger.net_ecc/fullchain.cer
   mode tcp
   #Use this to avoid the connection loss when client subscribed for a topic and its idle for sometime
   option clitcpka # For TCP keep-alive
@@ -246,17 +252,9 @@ backend teamcity.lab.raumberger.net
 backend hub.lab.raumberger.net
     server-template srv 5 _hub._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
-#backend deluge.lab.raumberger.net
-#    server-template deluge 5 _deluge._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+backend hyperion
+    server-template srv 5 _hyperion._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
-#backend sonarr.lab.raumberger.net
-#    server-template sonarr 5 _sonarr._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
-
-#backend radarr.lab.raumberger.net
-#    server-template radarr 5 _radarr._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
-
-#backend jackett.lab.raumberger.net
-#    server-template jackett 5 _jackett._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 resolvers consul
     nameserver controller {{ env "attr.unique.network.ip-address" }}:53

@@ -1,4 +1,4 @@
-job "certbot-renew" {
+job "acme-renew" {
   type        = "batch"
   datacenters = ["homenet"]
 
@@ -12,7 +12,7 @@ job "certbot-renew" {
     prohibit_overlap = true
   }
 
-  group "certbot-renew" {
+  group "acme-renew" {
     count = 1
 
     restart {
@@ -25,33 +25,33 @@ job "certbot-renew" {
       source    = "certificates"
     }
 
-    volume "lets-encrypt" {
+    volume "acme" {
       type      = "host"
       read_only = false
-      source    = "lets-encrypt"
+      source    = "acme"
     }
 
-    task "certbot-renew" {
+    task "renew" {
       driver = "docker"
       volume_mount {
         volume      = "certificates"
-        destination = "/etc/letsencrypt"
+        destination = "/etc/certificates"
         read_only   = false
       }
 
       volume_mount {
-        volume      = "lets-encrypt"
-        destination = "/var/lib/letsencrypt"
+        volume      = "acme"
+        destination = "/etc/acme"
         read_only   = false
       }
 
       config {
-        image = "certbot/dns-route53:arm64v8-v2.5.0"
-        args = ["renew", "--dns-route53", "--post-hook", "find /etc/letsencrypt/archive -regex \".*\\.pem$\" | while read file; do chmod 644 \"$file\"; done"]
+        image = "neilpang/acme.sh"
+        args = ["acme.sh", "--server", "letsencrypt", "--cert-home", "/etc/certificates", "--config-home", "/etc/acme/config", "--home", "/etc/acme", "--renew-all"]
       }
 
       vault {
-        policies = ["aws-route53"]
+        policies = ["aws-route53", "homelab"]
       }
 
       template {
@@ -61,8 +61,12 @@ AWS_ACCESS_KEY_ID="{{ .Data.access_key }}"
 AWS_SECRET_ACCESS_KEY="{{ .Data.secret_key }}"
 AWS_SESSION_TOKEN="{{ .Data.security_token }}"
 {{end}}
+{{ with secret "homelab/data/cloudflare" }}
+CF_Token="{{ .Data.data.acme }}"
+CF_Account_ID="{{ .Data.data.account_id }}"
+{{end}}
 EOF
-        destination   = "secrets/aws.env"
+        destination   = "secrets/acme.env"
         env = true
       }
     }
