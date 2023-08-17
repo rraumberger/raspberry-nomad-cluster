@@ -35,3 +35,9 @@ plugin "docker" {
     }
   }
 }
+
+{% if not is_nomad_server %}
+ui {
+  enabled = false
+}
+{% endif %}

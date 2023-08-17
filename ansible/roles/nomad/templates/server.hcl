@@ -6,4 +6,10 @@ server {
 
 ui {
   enabled = {{ ui_enabled|lower }}
+  consul {
+    ui_url = "{{ consul_ui_url }}"
+  }
+  vault {
+    ui_url = "{{ vault_ui_url }}"
+  }
 }

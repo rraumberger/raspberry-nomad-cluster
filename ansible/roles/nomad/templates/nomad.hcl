@@ -4,6 +4,7 @@ disable_update_check = true
 enable_syslog = true
 log_file = "/tmp/"
 log_rotate_max_files = 3
+log_rotate_duration = "24h"
 #log_level = "debug"
 
 telemetry {
