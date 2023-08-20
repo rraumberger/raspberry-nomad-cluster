@@ -253,7 +253,7 @@ backend hub.lab.raumberger.net
     server-template srv 5 _hub._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 backend hyperion
-    server-template srv 5 _hyperion._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
+    server-template srv 5 _hyperion-frontend._tcp.service.consul resolvers consul resolve-opts allow-dup-ip resolve-prefer ipv4 check
 
 
 resolvers consul
