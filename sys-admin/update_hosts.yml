@@ -1,164 +1,38 @@
 ---
-- name: Stop all services
-  hosts: storage,computing,controller
-  remote_user: root
-  become: yes
-  tasks:
-    - name: Stop Nomad
-      ansible.builtin.systemd:
-        name: nomad
-        state: stopped
-        enabled: false
-      ignore_errors: yes
-    - name: Stop Docker
-      ansible.builtin.systemd:
-        name: docker
-        state: stopped
-        enabled: true
-      ignore_errors: yes
-    - name: Stop Vault
-      ansible.builtin.systemd:
-        name: vault
-        state: stopped
-        enabled: false
-      ignore_errors: yes
-    - name: Stop Consul
-      ansible.builtin.systemd:
-        name: consul
-        state: stopped
-        enabled: false
-      ignore_errors: yes
-    - name: Cleanup failed systemd service
-      command:
-        cmd: systemctl reset-failed
 
-- name: Stop Gluster Volume
+- name: Upgrade Storage
   hosts: storage
   remote_user: root
   become: yes
-  tasks:
-    - name: Stop Gluster Volume
-      gluster.gluster.gluster_volume:
-        state: stopped
-        name: "{{ gluster_volume_name }}"
-      run_once: true
-
-- name: Add custom hosts # Due to the PiHole being stopped too, it add some domains manually
-  hosts: storage,computing,controller
-  remote_user: root
-  become: yes
-  tasks:
-    - lineinfile:
-        path: /etc/hosts
-        line: "{{ item }}"
-        state: present
-      loop: "{{ upgrade_hosts }}"
-
-- name: Update Packages
-  hosts: storage,computing,controller
-  remote_user: root
-  become: yes
+  serial: 1 # HA upgrade so GlusterFS stays online
+  vars:
+    shutdown_glusterd: true
+    unlock_vault: false
   roles:
     - sys-upgrade
-  serial: 6
-
-- name: Reboot Storage
-  hosts: storage
-  remote_user: root
-  become: yes
-  tasks:
-    - reboot:
-
-- name: Start Gluster Volume
-  hosts: storage
-  remote_user: root
-  become: yes
-  tasks:
-    - name: Start Gluster Volume
-      gluster.gluster.gluster_volume:
-        state: started
-        name: "{{ gluster_volume_name }}"
+  post_tasks:
+    - name: Start Self-heal
+      ansible.builtin.command: "gluster volume heal {{ gluster_volume_name }}"
       run_once: true
-    - name: Trigger re-mount
-      command:
-        cmd: mount -a
 
-- name: Reboot Controller
-  hosts: controller
-  remote_user: root
-  become: yes
-  tasks:
-    - reboot:
-
-- name: Reboot Computing
+- name: Upgrade Computing
   hosts: computing
   remote_user: root
   become: yes
-  tasks:
-    - reboot:
+  serial: 2
+  vars:
+    shutdown_glusterd: false
+    unlock_vault: false
+  roles:
+    - sys-upgrade
 
-- name: Ensure Consul is in a running state
-  hosts: storage,computing,controller
-  remote_user: root
-  become: yes
-  tasks:
-    - ansible.builtin.systemd:
-        name: consul
-        state: started
-        enabled: true
-    - service:
-        name: consul
-        state: started
-      register: consulDetails
-      until: consulDetails.status.ActiveState == "active"
-      retries: 15
-      delay: 20
-
-- name: Ensure Vault is in a running state
+- name: Upgrade Controller
   hosts: controller
   remote_user: root
   become: yes
-  tasks:
-    - ansible.builtin.systemd:
-        name: vault
-        state: started
-        enabled: true
-    - service:
-        name: vault
-        state: started
-      register: vaultDetails
-      until: vaultDetails.status.ActiveState == "active"
-      retries: 15
-      delay: 20
-
-- name: Unseal Vault
-  hosts: controller
-  remote_user: root
-  become: yes
-  tasks:
-    - name: Unsealing the vault
-      environment:
-        VAULT_ADDR: http://127.0.0.1:8200
-        VAULT_UNSEAL_KEY:  "{{ vault_unseal_key }}"
-      shell: vault operator unseal ${VAULT_UNSEAL_KEY}
-
-- name: Restart Nomad
-  hosts: storage,computing,controller
-  remote_user: root
-  become: yes
-  tasks:
-    - ansible.builtin.systemd:
-        name: nomad
-        state: started
-        enabled: true
-
-- name: Remove custom hosts
-  hosts: storage,computing,controller
-  remote_user: root
-  become: yes
-  tasks:
-    - lineinfile:
-        path: /etc/hosts
-        line: "{{ item }}"
-        state: absent
-      loop: "{{ upgrade_hosts }}"
+  serial: 1
+  vars:
+    shutdown_glusterd: true
+    unlock_vault: false
+  roles:
+    - sys-upgrade

@@ -1,5 +1,26 @@
 ---
-- name: Run the equivalent of "pacman -Syu"
+- name: Add custom hosts to /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ item }}"
+    state: present
+  loop: "{{ upgrade_hosts }}"
+
+- name: Mark node ineligible
+  command:
+    cmd: nomad node eligibility -disable -self
+
+- name: Drain node
+  command:
+    cmd: nomad node drain -enable -self -yes -m "system maintenance" -deadline 5m
+
+- name: Shutdown Gluster instance
+  ansible.builtin.systemd:
+    name: glusterd
+    state: stopped
+  when: "shutdown_glusterd | default(false)"
+
+- name: Upgrade Packages
   community.general.pacman:
     update_cache: yes
     upgrade: yes
@@ -14,3 +35,56 @@
     group: root
     mode: '0644'
     state: 'file'
+
+- name: Reboot
+  reboot:
+
+- name: Ensure Consul is started
+  service:
+    name: consul
+    state: started
+  register: consulDetails
+  until: consulDetails.status.ActiveState == "active"
+  retries: 15
+  delay: 20
+
+- name: Ensure Nomad is started
+  service:
+    name: nomad
+    state: started
+  register: nomadDetails
+  until: nomadDetails.status.ActiveState == "active"
+  retries: 15
+  delay: 20
+
+- name: Disable Nomad Node Draining
+  ansible.builtin.command:
+    cmd: nomad node drain -disable -self -yes -m "system maintenance finished"
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 20
+
+- name: Ensure Vault is started
+  service:
+    name: vault
+    state: started
+  register: vaultDetails
+  until: vaultDetails.status.ActiveState == "active"
+  retries: 15
+  delay: 20
+  when: "unlock_vault | default(false)"
+
+- name: Unsealing the vault
+  environment:
+    VAULT_ADDR: http://127.0.0.1:8200
+    VAULT_UNSEAL_KEY:  "{{ vault_unseal_key }}"
+  shell: vault operator unseal ${VAULT_UNSEAL_KEY}
+  when: "unlock_vault | default(false)"
+
+- name: Remove custom entries from /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ item }}"
+    state: absent
+  loop: "{{ upgrade_hosts }}"
