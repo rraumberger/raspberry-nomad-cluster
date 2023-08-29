@@ -32,7 +32,7 @@
   become: yes
   serial: 1
   vars:
-    shutdown_glusterd: true
-    unlock_vault: false
+    shutdown_glusterd: false
+    unlock_vault: true
   roles:
     - sys-upgrade

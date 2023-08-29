@@ -75,7 +75,7 @@
   delay: 20
   when: "unlock_vault | default(false)"
 
-- name: Unsealing the vault
+- name: Unsealing Vault
   environment:
     VAULT_ADDR: http://127.0.0.1:8200
     VAULT_UNSEAL_KEY:  "{{ vault_unseal_key }}"
